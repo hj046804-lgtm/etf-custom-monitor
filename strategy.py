@@ -67,6 +67,8 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
         if len(vix) < 2 or len(tnx) < 11 or len(spy) < 200:
             raise ValueError('시장 데이터 부족')
         vix_value = float(vix['Close'].iloc[-1])
+        vix_recent_fear = bool((vix['Close'].tail(5) >= 22).any())
+        vix_falling = bool(vix['Close'].iloc[-1] < vix['Close'].iloc[-2])
         yield_value = float(tnx['Close'].iloc[-1])
         yield_avg = float(tnx['Close'].iloc[-11:-1].mean())
         spy_close = float(spy['Close'].iloc[-1])
@@ -75,7 +77,7 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
         market = {'spy_close': spy_close, 'spy_ma200': spy_ma200,
                   'spy_trend_ok': spy_trend_ok, 'spy_date': str(spy.index[-1].date()),
                   'vix': vix_value, 'yield': yield_value, 'yield_avg': yield_avg,
-                  'vix_ok': vix_value >= 22, 'yield_ok': yield_value <= yield_avg,
+                  'vix_ok': vix_recent_fear and vix_falling, 'yield_ok': yield_value <= yield_avg,
                   'vix_date': str(vix.index[-1].date()), 'yield_date': str(tnx.index[-1].date())}
     except Exception as exc:
         return [], {}, [f'시장 지표 로드 실패: {exc}']
