@@ -60,12 +60,18 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
     try:
         vix = latest_complete(prices('^VIX'))
         tnx = latest_complete(prices('^TNX'))
-        if len(vix) < 2 or len(tnx) < 11:
+        spy = latest_complete(prices('SPY', period='18mo'))
+        if len(vix) < 2 or len(tnx) < 11 or len(spy) < 200:
             raise ValueError('시장 데이터 부족')
         vix_value = float(vix['Close'].iloc[-1])
         yield_value = float(tnx['Close'].iloc[-1])
         yield_avg = float(tnx['Close'].iloc[-11:-1].mean())
-        market = {'vix': vix_value, 'yield': yield_value, 'yield_avg': yield_avg,
+        spy_close = float(spy['Close'].iloc[-1])
+        spy_ma200 = float(spy['Close'].rolling(200).mean().iloc[-1])
+        spy_trend_ok = spy_close > spy_ma200
+        market = {'spy_close': spy_close, 'spy_ma200': spy_ma200,
+                  'spy_trend_ok': spy_trend_ok, 'spy_date': str(spy.index[-1].date()),
+                  'vix': vix_value, 'yield': yield_value, 'yield_avg': yield_avg,
                   'vix_ok': vix_value < 22, 'yield_ok': yield_value <= yield_avg,
                   'vix_date': str(vix.index[-1].date()), 'yield_date': str(tnx.index[-1].date())}
     except Exception as exc:
@@ -83,7 +89,7 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
             vol_ok = bool(pd.notna(last['vol_ratio']) and last['vol_ratio'] >= 1.20)
             bb_ok = bool(pd.notna(prev['BB_lower']) and pd.notna(last['BB_lower']) and prev['Close'] < prev['BB_lower'] and last['Close'] >= last['BB_lower'])
             technical_count = sum([rsi_ok, macd_ok, vol_ok, bb_ok])
-            market_ok = market['vix_ok'] or market['yield_ok']
+            market_ok = market['spy_trend_ok'] and (market['vix_ok'] or market['yield_ok'])
             signal = market_ok and technical_count >= 3
             rows.append({'ticker': symbol, 'date': str(d.index[-1].date()),
                          'close': float(last['Close']), 'rsi': float(last['RSI']),
