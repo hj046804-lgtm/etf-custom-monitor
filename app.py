@@ -75,11 +75,35 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 - **거래량:** 이전 20거래일 평균의 120% 이상
 - **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
 **매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
+@st.cache_data(ttl=900, show_spinner=False)
+def cached_oil_prices():
+    """Latest completed daily WTI and Brent futures closes, display-only."""
+    result = {}
+    for name, symbol in [("WTI", "CL=F"), ("브렌트유", "BZ=F")]:
+        try:
+            df = yf.download(symbol, period="1mo", interval="1d",
+                             auto_adjust=True, progress=False, threads=False)
+            if df.empty:
+                raise ValueError("가격 데이터 없음")
+            closes = df["Close"]
+            if isinstance(closes, pd.DataFrame):
+                closes = closes.iloc[:, 0]
+            closes = closes.dropna()
+            if len(closes) < 2:
+                raise ValueError("비교할 종가 데이터 부족")
+            latest, previous = float(closes.iloc[-1]), float(closes.iloc[-2])
+            result[name] = {"price": latest, "change_pct": (latest / previous - 1) * 100,
+                            "date": str(pd.Timestamp(closes.index[-1]).date())}
+        except Exception as exc:
+            result[name] = {"error": str(exc)}
+    return result
+
 @st.cache_data(ttl=900,show_spinner=False)
 def cached_scan(tickers, version="sigma-20day-v2"):
     return scan(list(tickers))
 if st.button("🔄 최신 데이터 다시 확인",type="primary"):
     cached_scan.clear()
+    cached_oil_prices.clear()
 if not active:
     st.info("모니터링할 ETF를 검색해서 추가하고 ON으로 설정해 주세요.")
 else:
@@ -99,6 +123,19 @@ else:
         c3.metric("금리 이전 10일 평균",f"{market['yield_avg']:.2f}%")
         c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
         st.caption(f"SPY 기준일 {market['spy_date']} · VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
+        st.subheader("🛢️ 국제유가 참고 지표")
+        st.caption("WTI·브렌트유 선물 최근 일봉 종가 · 배럴당 USD · 지연 데이터 가능 · 매수 조건 및 텔레그램 알림에 미반영")
+        oil = cached_oil_prices()
+        oil_cols = st.columns(2)
+        for col, name in zip(oil_cols, ("WTI", "브렌트유")):
+            item = oil[name]
+            if "error" in item:
+                col.warning(f"{name}: 유가 데이터 조회 실패")
+            else:
+                col.metric(f"{name} 원유 선물", f"${item['price']:,.2f}",
+                           f"{item['change_pct']:+.2f}% (전 거래일 대비)")
+                col.caption(f"기준일: {item['date']}")
+        st.caption("유가 상승·하락만으로 ETF 매수 여부를 판단하지 않습니다. 선물 계약 교체 시 가격이 불연속적으로 변할 수 있습니다.")
         st.subheader("🔔 현재 매수 신호")
         signals=[r for r in rows if r["signal"]]
         if signals:
