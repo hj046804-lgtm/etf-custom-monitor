@@ -18,7 +18,7 @@ html,body,[class*="css"],[data-testid="stApp"]{font-family:Inter,'Noto Sans KR',
 h1,h2,h3{letter-spacing:-.035em;color:#fceeff!important}
 h2{font-size:1.35rem!important;font-weight:750!important;margin-top:1.5rem!important}
 p,[data-testid="stCaptionContainer"]{color:#d2bce8}
-[data-testid="stMetric"]{background:linear-gradient(140deg,#fff,#242044);border:1px solid #9468bc;border-radius:21px;padding:17px 18px;box-shadow:0 8px 24px rgba(193,111,244,.2);min-height:105px}
+[data-testid="stMetric"]{background:linear-gradient(140deg,#302850 0%,#211d40 100%)!important;border:1px solid #9468bc;border-radius:21px;padding:17px 18px;box-shadow:0 8px 24px rgba(193,111,244,.2);min-height:105px}
 [data-testid="stMetricLabel"]{color:#d6b3f1!important;font-size:.88rem}
 [data-testid="stMetricValue"]{color:#fff3ff!important;font-weight:750;letter-spacing:-.04em}
 [data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#74599d!important}
@@ -56,6 +56,16 @@ hr{border-color:#5a477d!important}
 .etf-result-pill.yes{color:#7ef2c2!important;border-color:#3e987c!important}
 .etf-result-fill{background:linear-gradient(90deg,#f779b9,#a77af3)!important}
 .etf-result-status{background:#34284f!important;color:#e8d2f6!important;border-color:#7456a0!important}
+
+/* High-contrast metric cards on Galaxy mobile and Streamlit light defaults */
+[data-testid="stAppViewContainer"] [data-testid="stMetric"]{background:linear-gradient(135deg,#302850 0%,#211d40 100%)!important;color:#fff6ff!important;border:1px solid #a77bd4!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"] *,
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] label{color:#e9d6f7!important;opacity:1!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"] *{color:#ffffff!important;opacity:1!important;font-weight:800!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricDelta"]{opacity:1!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricDelta"] *{opacity:1!important}
 </style>
 <div class="premium-hero">
  <div class="premium-eyebrow">✦ MOONLIGHT CAT ETF MONITOR ✦</div>
