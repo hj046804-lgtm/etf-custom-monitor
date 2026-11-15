@@ -774,3 +774,55 @@ if "free_screen_result" in st.session_state:
             st.write(f"**선정 근거:** {item['reason']}")
             st.write(f"**주의할 점:** {item['risk']}")
 st.caption("⚠️ 투자 참고용 분석이며 투자 권유·자동매매가 아닙니다. 기존 4개 매수 신호와 텔레그램 알림에는 전혀 반영되지 않습니다.")
+
+# Personal 6-12 month ETF entry timing score. Separate from existing alerts.
+st.divider()
+st.subheader("🐱 내 ETF 중기 저점 매수 점수 · 6~12개월")
+st.caption("내가 추가한 활성 ETF만 평가 · 조정 40점 + 반등 35점 + 시장·상대강도 25점 · 완료 일봉 기반")
+with st.expander("📖 점수 기준 및 해석"):
+    st.markdown("""- **가격 조정 (40점):** 52주 고점 대비 하락률, 200일 이동평균선과의 거리
+- **반등 확인 (35점):** 일봉 RSI 상승, 주봉 RSI 상승, MACD 우위, 20일선 회복, 거래량
+- **시장·상대강도 (25점):** SPY 200일선, 최근 20거래일 SPY 대비 수익률, 50일선
+- **80점 이상:** 매수 검토 / **65~79점:** 분할매수 검토 / **50~64점:** 반등 확인 대기 / **49점 이하:** 관망
+- 주봉 RSI는 완료된 금요일 봉만 사용합니다. 매수 신호와 점수는 서로 독립적입니다.
+- 점수는 검증되지 않은 초기 휴리스틱이며, 미래 수익률·저점 적중률·승률을 뜻하지 않습니다. 백테스트 전까지 투자 결정의 단독 근거로 사용하지 마세요.""")
+@st.cache_data(ttl=21600, show_spinner=False)
+def cached_medium_scores(tickers):
+    from medium_term_score import score_watchlist
+    return score_watchlist(tickers)
+if active:
+    if st.button("📊 내 ETF 중기 점수 확인", key="medium_term_scores_button", use_container_width=True):
+        with st.spinner("내 ETF 일봉·주봉을 계산하는 중입니다..."):
+            try:
+                st.session_state["medium_term_scores"] = (tuple(active), cached_medium_scores(tuple(active)))
+            except Exception as exc:
+                st.error(f"중기 점수 계산 실패: {exc}")
+    previous=st.session_state.get("medium_term_scores")
+    if previous and previous[0]==tuple(active):
+        scored,score_errors=previous[1]
+        if scored:
+            for item in sorted(scored,key=lambda x:x["score"],reverse=True):
+                with st.container(border=True):
+                    left,right=st.columns([3,1])
+                    with left:
+                        st.markdown(f"### {item['ticker']} · {item['opinion']}")
+                        st.caption(f"기준일 {item['date']} · 종가 ${item['price']:,.2f} · 52주 최고가 대비 {item['drawdown']:+.1f}%")
+                    with right:
+                        st.metric("중기 저점 점수",f"{item['score']}/100")
+                    st.progress(item["score"]/100)
+                    st.caption(f"가격 조정 {item['pullback']}/40 · 반등 {item['rebound']}/35 · 시장·상대강도 {item['market']}/25")
+                    a,b,c=st.columns(3)
+                    a.metric("일봉 RSI",f"{item['rsi']:.1f}")
+                    b.metric("주봉 RSI",f"{item['weekly_rsi']:.1f}")
+                    c.metric("SPY 대비 20일",f"{item['relative20']:+.1f}%p")
+                    st.write("**위험 확인:** "+", ".join(item["risks"]))
+                    if item["leveraged"]:
+                        st.warning("이 종목은 일일 레버리지 ETF입니다. 6~12개월 보유 시 일일 재설정과 변동성에 따른 복리 효과로 기초지수의 장기 수익률 배수와 크게 달라질 수 있습니다.")
+        if score_errors:
+            with st.expander(f"데이터 조회 실패 {len(score_errors)}건"):
+                st.code("\n".join(score_errors))
+    elif previous:
+        st.info("활성 ETF 목록이 바뀌었어요. 버튼을 눌러 점수를 다시 계산해 주세요.")
+else:
+    st.info("모니터링할 ETF를 먼저 추가하고 활성화해 주세요.")
+st.caption("⚠️ 이 점수는 매수·매도 지시가 아니며 기존 매수 조건, 자동 알림, 관심종목 설정을 변경하지 않습니다.")
