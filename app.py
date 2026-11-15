@@ -113,29 +113,26 @@ else:
         st.error("시장 데이터를 불러오지 못했습니다.")
         if errors: st.code("\\n".join(errors))
     else:
-        s1,s2,s3=st.columns(3)
-        s1.metric("SPY 종가",f"${market['spy_close']:.2f}")
-        s2.metric("SPY 200일 평균",f"${market['spy_ma200']:.2f}")
-        s3.metric("SPY 추세 참고","200일선 위" if market["spy_trend_ok"] else "200일선 아래")
+        # Oil prices appear in the top reference row, replacing the SPY closing-price tile.
+        oil = cached_oil_prices()
+        s1,s2,s3,s4 = st.columns(4)
+        for col, name in ((s1, "WTI"), (s2, "브렌트유")):
+            item = oil[name]
+            if "error" in item:
+                col.metric(f"{name} 원유 선물", "조회 실패")
+            else:
+                col.metric(f"{name} 원유 선물", f"${item['price']:,.2f}",
+                           f"{item['change_pct']:+.2f}%")
+                col.caption(f"기준일: {item['date']} · USD/배럴")
+        s3.metric("SPY 200일 평균",f"${market['spy_ma200']:.2f}")
+        s4.metric("SPY 추세 참고","200일선 위" if market["spy_trend_ok"] else "200일선 아래")
         c1,c2,c3,c4=st.columns(4)
         c1.metric("VIX",f"{market['vix']:.2f}","충족" if market['vix_ok'] else "미충족")
         c2.metric("미국 10년물 금리",f"{market['yield']:.2f}%","충족" if market['yield_ok'] else "미충족")
         c3.metric("금리 이전 10일 평균",f"{market['yield_avg']:.2f}%")
         c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
         st.caption(f"SPY 기준일 {market['spy_date']} · VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
-        st.subheader("🛢️ 국제유가 참고 지표")
-        st.caption("WTI·브렌트유 선물 최근 일봉 종가 · 배럴당 USD · 지연 데이터 가능 · 매수 조건 및 텔레그램 알림에 미반영")
-        oil = cached_oil_prices()
-        oil_cols = st.columns(2)
-        for col, name in zip(oil_cols, ("WTI", "브렌트유")):
-            item = oil[name]
-            if "error" in item:
-                col.warning(f"{name}: 유가 데이터 조회 실패")
-            else:
-                col.metric(f"{name} 원유 선물", f"${item['price']:,.2f}",
-                           f"{item['change_pct']:+.2f}% (전 거래일 대비)")
-                col.caption(f"기준일: {item['date']}")
-        st.caption("유가 상승·하락만으로 ETF 매수 여부를 판단하지 않습니다. 선물 계약 교체 시 가격이 불연속적으로 변할 수 있습니다.")
+        st.caption("WTI·브렌트유: 최근 선물 일봉 종가(지연 가능), 전 거래일 대비 등락률 · 매수 조건 및 텔레그램 알림에 미반영")
         st.subheader("🔔 현재 매수 신호")
         signals=[r for r in rows if r["signal"]]
         if signals:
