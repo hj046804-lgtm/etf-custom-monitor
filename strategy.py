@@ -75,7 +75,7 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
         market = {'spy_close': spy_close, 'spy_ma200': spy_ma200,
                   'spy_trend_ok': spy_trend_ok, 'spy_date': str(spy.index[-1].date()),
                   'vix': vix_value, 'yield': yield_value, 'yield_avg': yield_avg,
-                  'vix_ok': vix_value < 22, 'yield_ok': yield_value <= yield_avg,
+                  'vix_ok': vix_value >= 22, 'yield_ok': yield_value <= yield_avg,
                   'vix_date': str(vix.index[-1].date()), 'yield_date': str(tnx.index[-1].date())}
     except Exception as exc:
         return [], {}, [f'시장 지표 로드 실패: {exc}']
