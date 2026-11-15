@@ -19,6 +19,11 @@
       "ticker": "DGRO",
       "name": "iShares Core Dividend Growth ET",
       "active": true
+    },
+    {
+      "ticker": "SCHD",
+      "name": "Schwab US Dividend Equity ETF",
+      "active": true
     }
   ]
 }
