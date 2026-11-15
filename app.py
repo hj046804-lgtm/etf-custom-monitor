@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 import hmac, re
+from html import escape
 from strategy import scan
 from watchlist_store import load, save
 st.set_page_config(page_title="나만의 ETF 매수 알림",page_icon="📈",layout="wide")
@@ -125,7 +126,46 @@ else:
             sigma_df=pd.DataFrame(sigma_display)
             filter_status=st.selectbox("시그마 구간 필터",["전체","과매도 (−1.5σ 이하)","−1σ 이하","정상 범위","+1σ 이상","과열 (+1.5σ 이상)"])
             if filter_status!="전체": sigma_df=sigma_df[sigma_df["구간"]==filter_status]
-            st.dataframe(sigma_df,hide_index=True,use_container_width=True)
+            st.markdown("""
+<style>
+.sigma-card{background:#19202c;border:1px solid #374151;border-radius:16px;padding:16px 18px;margin:10px 0;color:#f1f5f9}
+.sigma-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.sigma-name{font-weight:800;font-size:1.2rem}.sigma-price{font-weight:800;font-size:1.2rem}
+.sigma-change{font-weight:650;font-size:.94rem;margin-left:8px}
+.sigma-track{height:13px;position:relative;border-radius:20px;margin:24px 8px 15px;background:linear-gradient(90deg,#456b9e 0%,#6b8aa1 25%,#89979a 50%,#b19c76 75%,#a45460 100%)}
+.sigma-track:before,.sigma-track:after{content:"";position:absolute;top:-4px;height:21px;width:2px;background:#d7dee7;opacity:.45}
+.sigma-track:before{left:25%}.sigma-track:after{left:75%}
+.sigma-dot{position:absolute;top:50%;height:23px;width:23px;transform:translate(-50%,-50%);border-radius:50%;background:#a7b2c4;border:3px solid #111827;box-shadow:0 0 0 2px #637287}
+.sigma-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#c3cbd8;font-size:.84rem}
+.sigma-score{font-size:1.1rem;font-weight:800;color:#f1f5f9}
+</style>""",unsafe_allow_html=True)
+            for _,item in sigma_df.iterrows():
+                source=next((r for r in rows if r["ticker"]==item["ETF"]),None)
+                if source is None: continue
+                z=source.get("sigma_score")
+                anchor=source.get("sigma_anchor")
+                unit=source.get("sigma_unit")
+                change=source.get("daily_change_pct")
+                if z is None or anchor is None or unit is None or unit <= 0:
+                    st.info(f"{source['ticker']}: 시그마 계산에 필요한 데이터가 부족합니다.")
+                    continue
+                # -2 sigma to +2 sigma on a fixed horizontal scale.
+                pct=max(0.0,min(100.0,(z+2)/4*100))
+                lower=max(0.0,anchor-2*unit)
+                upper=anchor+2*unit
+                change_text=f"{change:+.2f}%" if change is not None else "—"
+                change_color="#44c7a2" if change is not None and change>=0 else "#ef7884"
+                ticker=escape(str(source["ticker"]))
+                card=(f'<div class="sigma-card"><div class="sigma-head">'
+                      f'<span class="sigma-name">{ticker}</span>'
+                      f'<span><span class="sigma-price">${source["close"]:,.2f}</span>'
+                      f'<span class="sigma-change" style="color:{change_color}">{change_text}</span></span></div>'
+                      f'<div class="sigma-track"><span class="sigma-dot" style="left:{pct:.1f}%"></span></div>'
+                      f'<div class="sigma-foot"><span class="sigma-score">{z:+.2f}σ</span>'
+                      f'<span>${lower:,.2f} – ${upper:,.2f} · ±2σ</span></div></div>')
+                st.markdown(card,unsafe_allow_html=True)
+            with st.expander("시그마 상세 수치 표 보기"):
+                st.dataframe(sigma_df,hide_index=True,use_container_width=True)
             with st.expander("σ 계산법과 해석"):
                 st.write("기준가 = 직전 주 마지막 거래일 종가. 1σ 가격폭 = 기준가 × 최근 20거래일 로그수익률 표준편차 × √5. σ 점수 = (현재 종가 − 기준가) ÷ 1σ 가격폭.")
                 st.warning("σ는 현재 가격의 상대적 위치를 나타내며 실제 저점·고점, 상승·하락 확률이나 향후 가격 범위를 보장하지 않습니다. 기존 매수 조건과 텔레그램 알림에는 반영되지 않습니다.")
