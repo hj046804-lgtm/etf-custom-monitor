@@ -4,6 +4,11 @@
       "ticker": "SOXX",
       "name": "iShares PHLX SOX Semiconductor ",
       "active": true
+    },
+    {
+      "ticker": "QQQ",
+      "name": "Invesco QQQ Trust, Series 1",
+      "active": true
     }
   ]
 }
