@@ -3,6 +3,12 @@ on:
   schedule:
     - cron: '30 23 * * 1-5'
   workflow_dispatch:
+    inputs:
+      send_test:
+        description: 'Send Telegram test message (no buy signal required)'
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -22,6 +28,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TEST: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test && '1' || '0' }}
         run: python notify.py
       - name: Save sent-alert history
         if: success()
