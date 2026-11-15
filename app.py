@@ -104,6 +104,29 @@ else:
             for r in signals:
                 st.success(f"**{r['ticker']}** · {r['date']} · 기술 조건 {r['technical_count']}/4 · 종가 ${r['close']:.2f}")
         else: st.write("현재 조건을 충족하는 ETF가 없습니다.")
+        st.subheader("📐 ETF 가격 범위 모니터")
+        st.caption("SigmaRange의 가격 범위·현재 위치 표시에서 아이디어를 얻은 보조 지표입니다. 매수 신호와 텔레그램 알림 조건에는 영향을 주지 않습니다.")
+        if rows:
+            range_display=[]
+            for r in rows:
+                pos=r.get("position20_pct")
+                range_display.append({
+                    "ETF":r["ticker"], "기준일":r["date"],
+                    "종가($)":round(r["close"],2),
+                    "전일 대비(%)":round(r["daily_change_pct"],2) if r.get("daily_change_pct") is not None else None,
+                    "5거래일 참고 하단($)":round(r["range_low"],2) if r.get("range_low") is not None else None,
+                    "5거래일 참고 상단($)":round(r["range_high"],2) if r.get("range_high") is not None else None,
+                    "참고 변동 폭(±%)":round(r["range_width_pct"],1) if r.get("range_width_pct") is not None else None,
+                    "최근 20일 저점($)":round(r["low20"],2),
+                    "최근 20일 고점($)":round(r["high20"],2),
+                    "20일 범위 내 위치(%)":round(pos,1) if pos is not None else None,
+                    "가격 위치":"저점 부근" if pos is not None and pos <=25 else "고점 부근" if pos is not None and pos >=75 else "중간" if pos is not None else "확인 불가",
+                })
+            range_frame=pd.DataFrame(range_display)
+            view=st.radio("가격 위치 필터",["전체","저점 부근","중간","고점 부근"],horizontal=True,key="range_filter")
+            if view!="전체": range_frame=range_frame[range_frame["가격 위치"]==view]
+            st.dataframe(range_frame,hide_index=True,use_container_width=True)
+            st.caption("참고 범위 = 최근 종가 ± ATR(14) × √5. 실제 SigmaRange의 시그마 모델과 다르며, 확률적 신뢰구간이나 보장된 가격 범위가 아닙니다.")
         st.subheader("📊 전체 ETF 검사 결과")
         if rows:
             display=[]
