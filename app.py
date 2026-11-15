@@ -79,13 +79,15 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 def cached_credit_spread():
     """Latest two published ICE BofA US High Yield OAS observations, with fallback."""
     import json
+    from datetime import date, timedelta
     from urllib.request import Request, urlopen
     from io import StringIO
     errors = []
     observations = []
     # Primary source: FRED's public CSV. This endpoint may block cloud hosting.
     try:
-        url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2"
+        start = (date.today() - timedelta(days=35)).isoformat()
+        url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd={start}"
         req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urlopen(req, timeout=10) as response:
             df = pd.read_csv(StringIO(response.read().decode("utf-8-sig")))
@@ -95,6 +97,23 @@ def cached_credit_spread():
                         if pd.notna(day) and pd.notna(val)]
     except Exception as exc:
         errors.append(f"FRED: {type(exc).__name__}: {exc}")
+    # Optional official FRED API fallback, if a FRED_API_KEY is configured.
+    if len(observations) < 2:
+        try:
+            api_key = st.secrets.get("FRED_API_KEY")
+            if api_key:
+                from urllib.parse import urlencode
+                params = urlencode({"series_id": "BAMLH0A0HYM2", "api_key": api_key,
+                                    "file_type": "json", "sort_order": "desc", "limit": 15})
+                url = "https://api.stlouisfed.org/fred/series/observations?" + params
+                req = Request(url, headers={"User-Agent": "ETFMonitor/1.0"})
+                with urlopen(req, timeout=12) as response:
+                    payload = json.load(response)
+                observations = [(item["date"], float(item["value"]))
+                                for item in payload.get("observations", [])
+                                if item.get("value") not in (None, ".")]
+        except Exception as exc:
+            errors.append(f"FRED API: {type(exc).__name__}: {exc}")
     # DBnomics mirrors the original FRED series; it is not an estimated substitute.
     if len(observations) < 2:
         try:
@@ -193,6 +212,7 @@ else:
         except Exception as exc:
             st.warning("하이일드 신용스프레드 데이터를 가져오지 못했습니다. 잠시 후 다시 확인해 주세요.")
             st.caption(f"조회 오류: {type(exc).__name__}: {exc}")
+            st.caption("FRED API 키를 Streamlit Secrets의 FRED_API_KEY에 등록하면 공식 API 경로도 사용할 수 있습니다.")
         st.subheader("🔔 현재 매수 신호")
         signals=[r for r in rows if r["signal"]]
         if signals:
