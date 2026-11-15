@@ -89,7 +89,7 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
             vol_ok = bool(pd.notna(last['vol_ratio']) and last['vol_ratio'] >= 1.20)
             bb_ok = bool(pd.notna(prev['BB_lower']) and pd.notna(last['BB_lower']) and prev['Close'] < prev['BB_lower'] and last['Close'] >= last['BB_lower'])
             technical_count = sum([rsi_ok, macd_ok, vol_ok, bb_ok])
-            market_ok = market['spy_trend_ok'] and (market['vix_ok'] or market['yield_ok'])
+            market_ok = market['vix_ok'] or market['yield_ok']
             signal = market_ok and technical_count >= 3
             rows.append({'ticker': symbol, 'date': str(d.index[-1].date()),
                          'close': float(last['Close']), 'rsi': float(last['RSI']),
