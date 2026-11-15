@@ -11,41 +11,45 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 :root{color-scheme:dark}
 html,body,[class*="css"],[data-testid="stApp"]{font-family:Inter,'Noto Sans KR',sans-serif}
-[data-testid="stAppViewContainer"]{background:radial-gradient(ellipse 850px 560px at 92% 3%,rgba(50,74,158,.18),transparent 65%),radial-gradient(ellipse 600px 500px at 0% 70%,rgba(90,48,161,.13),transparent 70%),#090f1c;color:#edf3ff}
-[data-testid="stHeader"]{background:rgba(9,15,28,.82)}
-[data-testid="stMainBlockContainer"]{max-width:1320px;padding-top:1.25rem;padding-bottom:3rem}
-[data-testid="stSidebar"]{background:#0e1628}
-h1,h2,h3{letter-spacing:-.035em;color:#f4f7ff!important}
+[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 94% 4%,rgba(155,105,247,.22),transparent 34%),radial-gradient(circle at 2% 78%,rgba(116,99,223,.19),transparent 39%),#11142c;color:#f6f0ff}
+[data-testid="stHeader"]{background:rgba(17,20,44,.86)}
+[data-testid="stMainBlockContainer"]{max-width:1320px;padding-top:1.15rem;padding-bottom:3rem}
+[data-testid="stSidebar"]{background:#191b3c}
+h1,h2,h3{letter-spacing:-.035em;color:#faf4ff!important}
 h2{font-size:1.35rem!important;font-weight:750!important;margin-top:1.5rem!important}
-p,[data-testid="stCaptionContainer"]{color:#b0bdd3}
-[data-testid="stMetric"]{background:linear-gradient(145deg,rgba(30,43,66,.96),rgba(17,26,44,.96));border:1px solid #2c3c59;border-radius:17px;padding:17px 18px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-height:105px}
-[data-testid="stMetricLabel"]{color:#a9bbd6!important;font-size:.88rem}
-[data-testid="stMetricValue"]{color:#f4f7ff!important;font-weight:750;letter-spacing:-.04em}
-[data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#30405c!important}
-[data-testid="stExpander"]{background:rgba(22,33,54,.75);border:1px solid #30405c;border-radius:16px;overflow:hidden}
-[data-testid="stDataFrame"],[data-testid="stTable"]{border:1px solid #30405c;border-radius:14px;overflow:hidden}
-div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#216de8,#6749cc);color:#fff;border:1px solid #5474d5;border-radius:12px;font-weight:700;box-shadow:0 6px 20px rgba(40,93,211,.2)}
-div.stButton>button:not([kind="primary"]){background:#19253d;border:1px solid #334563;color:#dbe8ff;border-radius:11px}
-div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#131e32!important;border-color:#354563!important;border-radius:12px!important}
-hr{border-color:#273955!important}
-.premium-hero{border:1px solid #33476b;border-radius:23px;padding:24px 27px;margin:5px 0 23px;background:linear-gradient(120deg,rgba(29,53,100,.85),rgba(24,28,60,.86) 58%,rgba(41,27,77,.83));box-shadow:0 14px 40px rgba(0,0,0,.18)}
-.premium-eyebrow{color:#76b5ff;font-size:.76rem;letter-spacing:.16em;font-weight:800}
-.premium-hero h1{font-size:clamp(1.55rem,3vw,2.3rem);margin:7px 0 7px;font-weight:800}
-.premium-hero p{color:#c2cee3;font-size:.88rem;margin:0}
-.premium-chip{display:inline-block;margin-top:14px;border:1px solid #405f9a;background:#182d50;color:#9cc8ff;padding:5px 11px;border-radius:30px;font-size:.76rem;font-weight:700}
+p,[data-testid="stCaptionContainer"]{color:#c7bee4}
+[data-testid="stMetric"]{background:linear-gradient(140deg,#292a55,#202343);border:1px solid #7464ad;border-radius:21px;padding:17px 18px;box-shadow:0 8px 24px rgba(11,9,34,.24);min-height:105px}
+[data-testid="stMetricLabel"]{color:#cfc4f4!important;font-size:.88rem}
+[data-testid="stMetricValue"]{color:#fff7ff!important;font-weight:750;letter-spacing:-.04em}
+[data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#675c9c!important}
+[data-testid="stExpander"]{background:#242647;border:1px solid #655a99;border-radius:19px;overflow:hidden}
+[data-testid="stDataFrame"],[data-testid="stTable"]{border:1px solid #615a94;border-radius:16px;overflow:hidden}
+div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#a766ef,#e67ac2);color:#fff;border:1px solid #d79af7;border-radius:15px;font-weight:700;box-shadow:0 6px 20px rgba(163,91,224,.24)}
+div.stButton>button:not([kind="primary"]){background:#29284d;border:1px solid #7765aa;color:#f0e7ff;border-radius:14px}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#222443!important;border-color:#7468a5!important;border-radius:14px!important}
+hr{border-color:#50497d!important}
+.premium-hero{position:relative;overflow:hidden;border:1px solid #8f77c6;border-radius:26px;padding:29px 30px;margin:5px 0 23px;background:radial-gradient(circle at 88% 15%,rgba(233,158,235,.26),transparent 31%),linear-gradient(115deg,#343165,#292b60 58%,#4a326a);box-shadow:0 14px 35px rgba(11,9,34,.26)}
+.premium-hero:after{content:"☁️  ✦  🌙";position:absolute;right:25px;top:22px;font-size:2.1rem;opacity:.86}
+.premium-eyebrow{color:#edc4ff;font-size:.76rem;letter-spacing:.13em;font-weight:800}
+.premium-hero h1{font-size:clamp(1.5rem,3vw,2.3rem);margin:9px 0 8px;font-weight:800}
+.premium-hero p{color:#e3d8f6;font-size:.88rem;margin:0;max-width:75%}
+.premium-chip{display:inline-block;margin-top:14px;border:1px solid #a58ad6;background:#43346e;color:#f3d5ff;padding:6px 12px;border-radius:30px;font-size:.76rem;font-weight:700}
+.stAlert{border-radius:16px}
 @media(max-width:650px){
  [data-testid="stMainBlockContainer"]{padding:1rem .85rem 3rem}
- .premium-hero{padding:19px 17px;border-radius:18px}
+ .premium-hero{padding:21px 17px;border-radius:20px}
+ .premium-hero:after{font-size:1.35rem;right:12px;top:10px}
+ .premium-hero p{max-width:100%}
  [data-testid="stMetric"]{padding:12px 13px;min-height:88px}
  [data-testid="stMetricValue"]{font-size:1.4rem!important}
  h2{font-size:1.18rem!important}
 }
 </style>
 <div class="premium-hero">
- <div class="premium-eyebrow">MARKET INTELLIGENCE · ETF MONITOR</div>
- <h1>📈 ETF Market Monitor</h1>
- <p>나만의 미국 ETF 매수 알림 대시보드 · 기술적 매수 조건과 시장 공포 지표를 한눈에</p>
- <span class="premium-chip">● 완료 일봉 기반 분석</span>
+ <div class="premium-eyebrow">✦ MOONLIGHT ETF MONITOR ✦</div>
+ <h1>🌙 미국 ETF 매수 알림 대시보드 💜</h1>
+ <p>✨ 별빛 아래 나만의 ETF 분석 · 기술적 매수 조건과 시장 지표를 한눈에 확인해요</p>
+ <span class="premium-chip">🐰 완료 일봉 기반 분석 · 자동매수 없음</span>
 </div>
 """,unsafe_allow_html=True)
 try:
@@ -173,11 +177,11 @@ try:
             fig.add_hline(y=threshold, row=3, col=1, line_color="#64748b",
                           line_dash="dot", line_width=1)
         fig.update_yaxes(range=[0, 100], row=3, col=1)
-    fig.update_layout(template="plotly_dark", paper_bgcolor="#090f1c", plot_bgcolor="#0d1526",
-        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#b6c6df"),
+    fig.update_layout(template="plotly_dark", paper_bgcolor="#1d1e3e", plot_bgcolor="#242547",
+        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#e4d8fa"),
         xaxis_rangeslider_visible=False, dragmode="pan", hovermode="x unified",
         legend=dict(orientation="h", y=1.06, x=0), showlegend=True)
-    fig.update_xaxes(showgrid=True, gridcolor="#263149", showline=False)
+    fig.update_xaxes(showgrid=True, gridcolor="#4b416f", showline=False)
     fig.update_yaxes(showgrid=True, gridcolor="#263149", side="right")
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar":True, "scrollZoom":True})
     st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 모든 지표는 선택한 봉 단위 기준")
