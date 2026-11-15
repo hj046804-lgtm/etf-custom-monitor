@@ -120,3 +120,38 @@ else:
             with st.expander(f"⚠️ 데이터 조회 실패 {len(errors)}건"):
                 st.code("\\n".join(errors))
 st.warning("알림은 GitHub Actions에서 별도로 검사해 텔레그램으로 전송합니다. 무료 서비스 실행 지연이나 실패가 발생할 수 있습니다.")
+
+
+st.divider()
+st.subheader("🧪 최근 5년 전략 백테스트")
+st.caption("A 기존: VIX/금리 중 1개 + 기술 3/4 · B 개선: A + SPY 200일선 위. 신호일 종가 확인 후 다음 거래일 시가 매수, 신호일로부터 5·10·20거래일째 종가 청산. 배당·수수료·슬리피지 미반영.")
+st.caption("ETF별 출시일에 따라 분석 가능한 기간이 다르며, 동일 종목의 연속 신호도 각각 집계합니다. 과거 성과는 미래 수익을 보장하지 않습니다.")
+@st.cache_data(ttl=86400,show_spinner=False)
+def cached_backtest(tickers):
+    from backtest import run_backtest
+    return run_backtest(list(tickers))
+if st.button("▶️ 5년 백테스트 실행",key="run_backtest"):
+    if not active:
+        st.warning("활성 ETF를 먼저 등록해 주세요.")
+    else:
+        st.session_state["show_backtest"]=True
+if st.session_state.get("show_backtest") and active:
+    with st.spinner("과거 10년 데이터를 불러와 5년간의 신호를 계산 중입니다. 종목 수에 따라 시간이 걸립니다..."):
+        try:
+            bt_summary, bt_events, bt_errors, bt_start = cached_backtest(tuple(active))
+            st.write(f"분석 시작일: {bt_start} · 활성 ETF {len(active)}개")
+            st.dataframe(bt_summary,hide_index=True,use_container_width=True)
+            st.caption("승률은 수익률 > 0인 신호의 비율이며, 미완료 보유기간은 해당 기간 표본에서 제외됩니다.")
+            if len(bt_events):
+                by_ticker = bt_events.groupby(["종목","전략"],as_index=False).agg(신호횟수=("신호일","count"))
+                st.subheader("종목별 신호 횟수")
+                st.dataframe(by_ticker,hide_index=True,use_container_width=True)
+                with st.expander("전체 매수 신호별 수익률"):
+                    st.dataframe(bt_events,hide_index=True,use_container_width=True)
+                st.download_button("📥 백테스트 상세 CSV",bt_events.to_csv(index=False).encode("utf-8-sig"),"etf_backtest_5y.csv","text/csv")
+            else:
+                st.info("해당 기간에 매수 신호가 없었습니다.")
+            if bt_errors:
+                st.warning("일부 ETF 데이터를 조회하지 못했습니다: "+"; ".join(bt_errors))
+        except Exception as exc:
+            st.error("백테스트 실행 실패: "+str(exc))
