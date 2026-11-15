@@ -66,10 +66,33 @@ hr{border-color:#5a477d!important}
 [data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"] *{color:#ffffff!important;opacity:1!important;font-weight:800!important}
 [data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricDelta"]{opacity:1!important}
 [data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricDelta"] *{opacity:1!important}
+
+/* Rose-night kawaii palette: dark pink cards, high-contrast text */
+[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 92% 3%,rgba(248,96,173,.25),transparent 37%),radial-gradient(circle at 0% 68%,rgba(216,67,137,.18),transparent 44%),#211125!important;color:#fff0f7!important}
+[data-testid="stHeader"]{background:rgba(33,17,37,.9)!important}
+[data-testid="stSidebar"]{background:#301a35!important}
+h1,h2,h3{color:#fff1f8!important}
+.premium-hero{background:radial-gradient(circle at 85% 20%,rgba(255,171,211,.25),transparent 36%),linear-gradient(110deg,#51233f,#6a2c51 55%,#402047)!important;border-color:#e88cb8!important}
+.premium-eyebrow,.cute-divider{color:#ffb6d8!important}
+.premium-hero p{color:#ffe0ee!important}
+.premium-chip{background:#652b51!important;border-color:#ee94c0!important;color:#ffe0f1!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"]{background:linear-gradient(135deg,#552644,#391c36)!important;border:1px solid #db7ead!important;color:#fff4fa!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"] *{color:#ffcfeb!important;opacity:1!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"] *{color:#fff!important;opacity:1!important}
+[data-testid="stExpander"]{background:#39213b!important;border-color:#b56b9a!important}
+div.stButton>button:not([kind="primary"]){background:#492640!important;border-color:#bf75a4!important;color:#ffe3f2!important}
+div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#f45c9f,#c15aa7)!important;border-color:#ffabd4!important}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#3c223d!important;border-color:#b46b9b!important}
+.etf-result-card{background:linear-gradient(120deg,#4a2442,#321c36 72%,#48233d)!important;border-color:#b973a0!important}
+.etf-result-pill{background:#4a2943!important;border-color:#9d648d!important}
+.etf-result-status{background:#542c4b!important;border-color:#a96a9a!important}
+.etf-result-fill{background:linear-gradient(90deg,#ff75ac,#ef9fd6)!important}
 </style>
 <div class="premium-hero">
  <div class="premium-eyebrow">✦ MOONLIGHT CAT ETF MONITOR ✦</div>
- <h1>🌙 미국 ETF 매수 알림 대시보드 💜</h1>
+ <h1>💗 미국 ETF 매수 알림 대시보드 🐱</h1>
  <p>✨ 나만의 ETF 분석 · 기술적 매수 조건과 시장 지표를 한눈에 확인해요</p>
  <span class="premium-chip">✨ 완료 일봉 기반 분석 · 자동매수 없음</span>
  <div class="hero-cat"><svg class="kawaii-cat" viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="웃고 있는 귀여운 고양이">
@@ -219,11 +242,11 @@ try:
             fig.add_hline(y=threshold, row=3, col=1, line_color="#64748b",
                           line_dash="dot", line_width=1)
         fig.update_yaxes(range=[0, 100], row=3, col=1)
-    fig.update_layout(template="plotly_dark", paper_bgcolor="#1d1b3d", plot_bgcolor="#252246",
+    fig.update_layout(template="plotly_dark", paper_bgcolor="#29162d", plot_bgcolor="#341c36",
         height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#e6d4f7"),
         xaxis_rangeslider_visible=False, dragmode="pan", hovermode="x unified",
         legend=dict(orientation="h", y=1.06, x=0), showlegend=True)
-    fig.update_xaxes(showgrid=True, gridcolor="#4d426c", showline=False)
+    fig.update_xaxes(showgrid=True, gridcolor="#60405a", showline=False)
     fig.update_yaxes(showgrid=True, gridcolor="#263149", side="right")
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar":True, "scrollZoom":True})
     st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 모든 지표는 선택한 봉 단위 기준")
