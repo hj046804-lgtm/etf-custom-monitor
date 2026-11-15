@@ -24,6 +24,11 @@
       "ticker": "SCHD",
       "name": "Schwab US Dividend Equity ETF",
       "active": true
+    },
+    {
+      "ticker": "TSLL",
+      "name": "Direxion Daily TSLA Bull 2X ETF",
+      "active": true
     }
   ]
 }
