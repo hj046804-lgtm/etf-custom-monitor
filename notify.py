@@ -7,6 +7,11 @@ def main():
     token=os.getenv("TELEGRAM_BOT_TOKEN")
     chat=os.getenv("TELEGRAM_CHAT_ID")
     if not token or not chat: raise RuntimeError("Telegram GitHub Secrets missing")
+    if os.getenv("TELEGRAM_TEST") == "1":
+        response=requests.post("https://api.telegram.org/bot"+token+"/sendMessage",json={"chat_id":chat,"text":"🔔 [맞춤 ETF 모니터] 텔레그램 연결 테스트 성공!\n이 메시지는 테스트이며 실제 매수 신호가 아닙니다."},timeout=20)
+        response.raise_for_status()
+        print("Telegram test message sent")
+        return
     watch=json.loads(Path("watchlist.json").read_text(encoding="utf-8"))
     etfs=list(dict.fromkeys(x["ticker"] for x in watch.get("etfs",[]) if x.get("active",True)))
     if not etfs:
