@@ -75,7 +75,7 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 - **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
 **매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
 @st.cache_data(ttl=900,show_spinner=False)
-def cached_scan(tickers, version="range-v2"):
+def cached_scan(tickers, version="sigma-v1"):
     return scan(list(tickers))
 if st.button("🔄 최신 데이터 다시 확인",type="primary"):
     cached_scan.clear()
@@ -104,29 +104,31 @@ else:
             for r in signals:
                 st.success(f"**{r['ticker']}** · {r['date']} · 기술 조건 {r['technical_count']}/4 · 종가 ${r['close']:.2f}")
         else: st.write("현재 조건을 충족하는 ETF가 없습니다.")
-        st.subheader("📐 ETF 가격 범위 모니터")
-        st.caption("SigmaRange의 가격 범위·현재 위치 표시에서 아이디어를 얻은 보조 지표입니다. 매수 신호와 텔레그램 알림 조건에는 영향을 주지 않습니다.")
+        st.subheader("📐 주간 시그마(σ) 모니터")
+        st.caption("이번 주 기준가 대비 현재 종가의 변동성 위치를 σ로 표시합니다. SigmaRange와 비슷한 표현 방식이지만 계산법은 독립적인 추정 모델입니다.")
         if rows:
-            range_display=[]
+            sigma_display=[]
             for r in rows:
-                pos=r.get("position20_pct")
-                range_display.append({
-                    "ETF":r["ticker"], "기준일":r["date"],
+                z=r.get("sigma_score")
+                status=("과매도 (−1.5σ 이하)" if z <= -1.5 else "−1σ 이하" if z <= -1 else
+                        "과열 (+1.5σ 이상)" if z >= 1.5 else "+1σ 이상" if z >= 1 else "정상 범위") if z is not None else "계산 불가"
+                sigma_display.append({
+                    "ETF":r["ticker"],"기준일":r["date"],
                     "종가($)":round(r["close"],2),
-                    "전일 대비(%)":round(r["daily_change_pct"],2) if r.get("daily_change_pct") is not None else None,
-                    "5거래일 참고 하단($)":round(r["range_low"],2) if r.get("range_low") is not None else None,
-                    "5거래일 참고 상단($)":round(r["range_high"],2) if r.get("range_high") is not None else None,
-                    "참고 변동 폭(±%)":round(r["range_width_pct"],1) if r.get("range_width_pct") is not None else None,
-                    "최근 20일 저점($)":round(r["low20"],2) if r.get("low20") is not None else None,
-                    "최근 20일 고점($)":round(r["high20"],2) if r.get("high20") is not None else None,
-                    "20일 범위 내 위치(%)":round(pos,1) if pos is not None else None,
-                    "가격 위치":"저점 부근" if pos is not None and pos <=25 else "고점 부근" if pos is not None and pos >=75 else "중간" if pos is not None else "확인 불가",
+                    "시그마(σ)":round(z,2) if z is not None else None,
+                    "구간":status,
+                    "−1σ 하단($)":round(r["sigma_lower"],2) if r.get("sigma_lower") is not None else None,
+                    "+1σ 상단($)":round(r["sigma_upper"],2) if r.get("sigma_upper") is not None else None,
+                    "주간 기준가($)":round(r["sigma_anchor"],2) if r.get("sigma_anchor") is not None else None,
+                    "20일 범위 위치(%)":round(r["position20_pct"],1) if r.get("position20_pct") is not None else None,
                 })
-            range_frame=pd.DataFrame(range_display)
-            view=st.radio("가격 위치 필터",["전체","저점 부근","중간","고점 부근"],horizontal=True,key="range_filter")
-            if view!="전체": range_frame=range_frame[range_frame["가격 위치"]==view]
-            st.dataframe(range_frame,hide_index=True,use_container_width=True)
-            st.caption("참고 범위 = 최근 종가 ± ATR(14) × √5. 실제 SigmaRange의 시그마 모델과 다르며, 확률적 신뢰구간이나 보장된 가격 범위가 아닙니다.")
+            sigma_df=pd.DataFrame(sigma_display)
+            filter_status=st.selectbox("시그마 구간 필터",["전체","과매도 (−1.5σ 이하)","−1σ 이하","정상 범위","+1σ 이상","과열 (+1.5σ 이상)"])
+            if filter_status!="전체": sigma_df=sigma_df[sigma_df["구간"]==filter_status]
+            st.dataframe(sigma_df,hide_index=True,use_container_width=True)
+            with st.expander("σ 계산법과 해석"):
+                st.write("기준가 = 직전 주 마지막 거래일 종가. 1σ 가격폭 = 기준가 × 최근 20거래일 로그수익률 표준편차 × √5. σ 점수 = (현재 종가 − 기준가) ÷ 1σ 가격폭.")
+                st.warning("σ는 현재 가격의 상대적 위치를 나타내며 실제 저점·고점, 상승·하락 확률이나 향후 가격 범위를 보장하지 않습니다. 기존 매수 조건과 텔레그램 알림에는 반영되지 않습니다.")
         st.subheader("📊 전체 ETF 검사 결과")
         if rows:
             display=[]
