@@ -66,13 +66,13 @@ def run_backtest(tickers):
                     events.append(row)
         except Exception as exc:
             errors.append(f"{ticker}: {exc}")
-    event_df = pd.DataFrame(events, columns=["종목","전략","신호일"]+[f"{h}일 수익률" for h, label in HORIZONS])
+    event_df = pd.DataFrame(events, columns=["종목","전략","신호일"]+[f"{label} 수익률" for h, label in HORIZONS])
     summary = []
     for strategy in ("A","B"):
         subset = event_df[event_df["전략"] == strategy]
         row = {"전략": "A 기존" if strategy == "A" else "B 개선", "매수 신호 횟수": len(subset)}
-        for h in HORIZONS:
-            s = subset[f"{h}일 수익률"].dropna()
+        for h, label in HORIZONS:
+            s = subset[f"{label} 수익률"].dropna()
             row[f"{label} 표본"] = len(s)
             row[f"{label} 승률(%)"] = round(float((s > 0).mean()*100), 2) if len(s) else None
             row[f"{label} 평균 수익률(%)"] = round(float(s.mean()), 2) if len(s) else None
