@@ -104,34 +104,6 @@ for i,item in enumerate(watch["etfs"]):
 active=[x["ticker"] for x in watch["etfs"] if x.get("active",True)]
 
 st.divider()
-st.subheader("📈 미국 주요 지수 차트")
-st.caption("S&P 500 · 나스닥 100 · 다우존스 · 러셀 2000 · VIX | 미국 시장 지연 일봉 · 매수 신호와 별개인 참고 차트")
-index_symbols = {"S&P 500": "^GSPC", "나스닥 100": "^NDX", "다우존스": "^DJI", "러셀 2000": "^RUT", "VIX": "^VIX"}
-chart_col1, chart_col2 = st.columns([2, 1])
-with chart_col1:
-    selected_index = st.selectbox("지수 선택", list(index_symbols), key="market_index_chart")
-with chart_col2:
-    selected_period = st.selectbox("조회 기간", ["1개월", "3개월", "6개월", "1년"], index=2, key="market_index_period")
-@st.cache_data(ttl=3600, show_spinner=False)
-def cached_index_chart(symbol, period):
-    df = yf.download(symbol, period=period, interval="1d", auto_adjust=True, progress=False, threads=False)
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    if df.empty or "Close" not in df:
-        raise ValueError("지수 시세를 불러오지 못했습니다.")
-    return df[["Close"]].dropna().rename(columns={"Close": "지수"})
-try:
-    index_chart = cached_index_chart(index_symbols[selected_index], {"1개월":"1mo","3개월":"3mo","6개월":"6mo","1년":"1y"}[selected_period])
-    if not index_chart.empty:
-        last_index = float(index_chart["지수"].iloc[-1])
-        first_index = float(index_chart["지수"].iloc[0])
-        index_change = (last_index / first_index - 1) * 100 if first_index else 0
-        st.metric(f"{selected_index} 최근 지수", f"{last_index:,.2f}", f"{index_change:+.2f}% · 조회 기간 대비")
-        st.line_chart(index_chart, height=310, use_container_width=True)
-        st.caption(f"마지막 데이터: {index_chart.index[-1].date()} · 데이터 제공: Yahoo Finance · 실시간 호가 아님")
-except Exception as chart_exc:
-    st.warning(f"지수 차트를 표시하지 못했습니다: {chart_exc}")
-
 st.subheader("📊 시장 대시보드 · ETF 매수 조건 검사")
 st.caption("미국 증시 완료 일봉 기준 · 선택한 활성 ETF만 검사 · 자동매수 없음")
 with st.expander("📋 매수 조건 4개 + 시장 참고 지표"):
