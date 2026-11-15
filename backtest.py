@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from strategy import prices, indicators, latest_complete
 
-HORIZONS = (5, 10, 20)
+HORIZONS = ((10, '2주'), (21, '1개월'), (63, '3개월'))
 
 def run_backtest(tickers):
     cutoff = pd.Timestamp(datetime.now(ZoneInfo("America/New_York")).date()) - pd.DateOffset(years=5)
@@ -60,21 +60,21 @@ def run_backtest(tickers):
                     continue
                 for strategy in (["A","B"] if spy_ok else ["A"]):
                     row = {"종목": ticker, "전략": strategy, "신호일": date.date().isoformat()}
-                    for h in HORIZONS:
+                    for h, label in HORIZONS:
                         # Signal after day-i close; enter next session open, exit day i+h close.
-                        row[f"{h}일 수익률"] = (float(d["Close"].iloc[i+h]) / entry - 1)*100 if i+h < len(d) else np.nan
+                        row[f"{label} 수익률"] = (float(d["Close"].iloc[i+h]) / entry - 1)*100 if i+h < len(d) else np.nan
                     events.append(row)
         except Exception as exc:
             errors.append(f"{ticker}: {exc}")
-    event_df = pd.DataFrame(events, columns=["종목","전략","신호일"]+[f"{h}일 수익률" for h in HORIZONS])
+    event_df = pd.DataFrame(events, columns=["종목","전략","신호일"]+[f"{h}일 수익률" for h, label in HORIZONS])
     summary = []
     for strategy in ("A","B"):
         subset = event_df[event_df["전략"] == strategy]
         row = {"전략": "A 기존" if strategy == "A" else "B 개선", "매수 신호 횟수": len(subset)}
         for h in HORIZONS:
             s = subset[f"{h}일 수익률"].dropna()
-            row[f"{h}일 표본"] = len(s)
-            row[f"{h}일 승률(%)"] = round(float((s > 0).mean()*100), 2) if len(s) else None
-            row[f"{h}일 평균 수익률(%)"] = round(float(s.mean()), 2) if len(s) else None
+            row[f"{label} 표본"] = len(s)
+            row[f"{label} 승률(%)"] = round(float((s > 0).mean()*100), 2) if len(s) else None
+            row[f"{label} 평균 수익률(%)"] = round(float(s.mean()), 2) if len(s) else None
         summary.append(row)
     return pd.DataFrame(summary), event_df, errors, cutoff.date().isoformat()
