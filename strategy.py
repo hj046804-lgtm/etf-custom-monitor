@@ -99,14 +99,14 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
             band_half = atr * (5 ** 0.5) if atr is not None else None
             band_low = max(0.0, float(last['Close']) - band_half) if band_half is not None else None
             band_high = float(last['Close']) + band_half if band_half is not None else None
-            # Independent weekly sigma estimate: previous week's final close is the anchor.
-            # Uses 20 completed daily log returns; not SigmaRange's proprietary model.
-            week_start = d.index[-1].normalize() - pd.Timedelta(days=d.index[-1].weekday())
-            prior_week = d.loc[d.index.normalize() < week_start]
-            anchor = float(prior_week['Close'].iloc[-1]) if len(prior_week) else None
-            daily_log_vol = float(np.log(d['Close'] / d['Close'].shift(1)).tail(20).std(ddof=1))
-            sigma_unit = anchor * daily_log_vol * np.sqrt(5) if anchor is not None and np.isfinite(daily_log_vol) else None
-            sigma_score = (float(last['Close']) - anchor) / sigma_unit if sigma_unit is not None and sigma_unit > 0 else None
+            # 20-session closing-price z-score (display only; does not affect buy alerts).
+            # The current completed daily close is included in the 20-session window.
+            recent_closes = d['Close'].tail(20)
+            anchor = float(recent_closes.mean()) if len(recent_closes) == 20 else None
+            sigma_unit = float(recent_closes.std(ddof=0)) if len(recent_closes) == 20 else None
+            if sigma_unit is not None and not np.isfinite(sigma_unit):
+                sigma_unit = None
+            sigma_score = (float(last['Close']) - anchor) / sigma_unit if anchor is not None and sigma_unit is not None and sigma_unit > 0 else None
             high20 = float(d['High'].tail(20).max())
             low20 = float(d['Low'].tail(20).min())
             rows.append({'ticker': symbol, 'date': str(d.index[-1].date()),
