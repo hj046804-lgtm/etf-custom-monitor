@@ -30,7 +30,7 @@ except Exception as e:
     st.error("종목 목록을 불러오지 못했습니다: "+str(e))
     st.stop()
 watch.setdefault("etfs",[])
-st.info("매수 신호: (최근 5거래일 내 VIX ≥ 22 및 전일 대비 VIX 하락 또는 10년물 금리 ≤ 이전 10일 평균) + 기술 4개 중 3개 이상 · SPY 200일선은 참고용")
+st.info("매수 신호: (최근 10거래일 내 VIX ≥ 20 및 전일 대비 VIX 하락 또는 10년물 금리 ≤ 이전 10일 평균) + 기술 4개 중 3개 이상 · SPY 200일선은 참고용")
 st.subheader("ETF 검색 및 추가")
 q=st.text_input("ETF 이름 또는 티커 검색",placeholder="예: QQQ, SOXX, S&P 500")
 results=[]
@@ -68,7 +68,7 @@ st.subheader("📊 선택한 ETF 매수 조건 검사")
 st.caption("미국 증시 완료 일봉 기준 · 선택한 활성 ETF만 검사 · 자동매수 없음")
 with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
     st.markdown("""- **SPY 200일선:** SPY 종가와 200일 이동평균선 비교 (참고용, 매수 판정 미반영)
-- **VIX:** 최근 5거래일 내 22 이상 기록 + 현재 전일 대비 하락
+- **VIX:** 최근 10거래일 내 20 이상 기록 + 현재 전일 대비 하락
 - **미국 10년물 금리:** 이전 10거래일 평균 이하
 - **RSI(14):** 전일 RSI 35 이하, 최근 RSI 상승
 - **MACD:** 최근 2거래일 중 골든크로스
