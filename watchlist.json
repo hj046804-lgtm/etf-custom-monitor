@@ -29,6 +29,11 @@
       "ticker": "IBB",
       "name": "iShares Biotechnology ETF",
       "active": true
+    },
+    {
+      "ticker": "NASA",
+      "name": "Tema Space Innovators ETF",
+      "active": true
     }
   ]
 }
