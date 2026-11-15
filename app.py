@@ -291,7 +291,7 @@ else:
             theta = math.pi * (1 - overall / 100)
             nx = 180 + 136 * math.cos(theta)
             ny = 184 - 136 * math.sin(theta)
-            gauge = f"""<svg viewBox="0 0 360 235" style="width:100%;max-width:420px;display:block;margin:0 auto" role="img" aria-label="BUY SELL 참고 점수 {overall:.0f}점">
+            gauge = f"""<svg viewBox="0 0 360 235" style="width:100%;max-width:320px;display:block;margin:0 auto" role="img" aria-label="BUY SELL 참고 점수 {overall:.0f}점">
               <path d="M 48 184 A 132 132 0 0 1 180 52" fill="none" stroke="#854252" stroke-width="18"/>
               <path d="M 180 52 A 132 132 0 0 1 267 85" fill="none" stroke="#9ca3af" stroke-width="18"/>
               <path d="M 267 85 A 132 132 0 0 1 312 184" fill="none" stroke="#28735b" stroke-width="18"/>
@@ -304,16 +304,16 @@ else:
               <text x="262" y="53" font-size="12" fill="#aeb5c4">VIX 20</text>
             </svg>"""
             st.markdown(f"""
-            <div style="background:linear-gradient(145deg,#242a37,#191e2b);border:1px solid #3b4252;border-radius:28px;padding:24px 20px;color:#e9ecf4;margin:16px 0">
-              <div style="font-size:23px;font-weight:750">◉ BUY &amp; SELL Indicator</div>
-              <div style="color:#aeb5c4;font-size:13px;margin:7px 0 16px">VIX + VIX3M 기반 · 완료 일봉 · 자체 참고 점수</div>
+            <div style="background:linear-gradient(145deg,#242a37,#191e2b);border:1px solid #3b4252;border-radius:23px;padding:16px 15px;color:#e9ecf4;margin:16px 0">
+              <div style="font-size:19px;font-weight:750">◉ BUY &amp; SELL Indicator</div>
+              <div style="color:#aeb5c4;font-size:13px;margin:5px 0 9px">VIX + VIX3M 기반 · 완료 일봉 · 자체 참고 점수</div>
               {gauge}
-              <div style="text-align:center;margin:-4px 0 20px"><span style="border:1px solid #646a78;background:#343947;border-radius:16px;padding:8px 17px;font-weight:700">{zone}</span><span style="color:#b8bfcd;margin-left:10px;font-size:13px">{zone_note}</span></div>
-              <div style="border-top:1px solid #3b4252;padding-top:18px;font-size:15px">
-                <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:13px"><span style="color:#b7bfce">VIX 공포지수 · 70%</span><strong>{vix_now:.2f} · {vix_score:.0f}점</strong></div>
+              <div style="text-align:center;margin:-4px 0 13px"><span style="border:1px solid #646a78;background:#343947;border-radius:16px;padding:6px 12px;font-weight:700">{zone}</span><span style="color:#b8bfcd;margin-left:10px;font-size:13px">{zone_note}</span></div>
+              <div style="border-top:1px solid #3b4252;padding-top:12px;font-size:13px">
+                <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:9px"><span style="color:#b7bfce">VIX 공포지수 · 70%</span><strong>{vix_now:.2f} · {vix_score:.0f}점</strong></div>
                 <div style="display:flex;justify-content:space-between;gap:10px"><span style="color:#b7bfce">기간구조 VIX÷VIX3M · 30%</span><strong>{ratio:.3f} · {ratio_score:.0f}점</strong></div>
               </div>
-              <div style="color:#929cac;font-size:12px;margin-top:19px">데이터 기준 {escape(str(vix3m["date"]))} · VIX3M {vix3m["value"]:.2f}</div>
+              <div style="color:#929cac;font-size:12px;margin-top:12px">데이터 기준 {escape(str(vix3m["date"]))} · VIX3M {vix3m["value"]:.2f}</div>
             </div>
             """, unsafe_allow_html=True)
         except Exception as exc:
