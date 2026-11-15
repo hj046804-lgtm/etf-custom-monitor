@@ -77,29 +77,47 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 **매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
 @st.cache_data(ttl=3600, show_spinner=False)
 def cached_credit_spread():
-    """ICE BofA US High Yield OAS from FRED, latest two available observations."""
-    from datetime import date, timedelta
+    """Latest two published ICE BofA US High Yield OAS observations, with fallback."""
+    import json
     from urllib.request import Request, urlopen
     from io import StringIO
-    start = (date.today() - timedelta(days=45)).isoformat()
-    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=" + start
-    req = Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; ETFMonitor/1.0)"})
-    with urlopen(req, timeout=12) as response:
-        raw = response.read().decode("utf-8-sig")
-    df = pd.read_csv(StringIO(raw))
-    if "BAMLH0A0HYM2" not in df.columns:
-        raise ValueError("FRED 응답 형식이 변경되었습니다")
-    df["BAMLH0A0HYM2"] = pd.to_numeric(df["BAMLH0A0HYM2"], errors="coerce")
-    df = df.dropna(subset=["BAMLH0A0HYM2"])
-    if len(df) < 2:
-        raise ValueError("최근 유효 관측값이 부족합니다")
-    current, previous = float(df["BAMLH0A0HYM2"].iloc[-1]), float(df["BAMLH0A0HYM2"].iloc[-2])
+    errors = []
+    observations = []
+    # Primary source: FRED's public CSV. This endpoint may block cloud hosting.
+    try:
+        url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2"
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=10) as response:
+            df = pd.read_csv(StringIO(response.read().decode("utf-8-sig")))
+        dates = pd.to_datetime(df.iloc[:, 0], errors="coerce")
+        values = pd.to_numeric(df["BAMLH0A0HYM2"], errors="coerce")
+        observations = [(str(day.date()), float(val)) for day, val in zip(dates, values)
+                        if pd.notna(day) and pd.notna(val)]
+    except Exception as exc:
+        errors.append(f"FRED: {type(exc).__name__}: {exc}")
+    # DBnomics mirrors the original FRED series; it is not an estimated substitute.
+    if len(observations) < 2:
+        try:
+            url = "https://api.db.nomics.world/v22/series/FRED/BAMLH0A0HYM2?observations=1"
+            req = Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+            with urlopen(req, timeout=12) as response:
+                payload = json.load(response)
+            series = payload["series"]["docs"][0]
+            observations = [(str(day), float(val)) for day, val in
+                            zip(series["period"], series["value"])
+                            if val is not None and str(val) not in ("NA", "NaN", "nan")]
+        except Exception as exc:
+            errors.append(f"DBnomics: {type(exc).__name__}: {exc}")
+    observations = sorted(observations, key=lambda item: item[0])
+    if len(observations) < 2:
+        raise ValueError(" / ".join(errors) or "최근 유효 관측값 부족")
+    (previous_date, previous), (current_date, current) = observations[-2:]
     if previous <= 0:
-        raise ValueError("전일 관측값이 유효하지 않습니다")
+        raise ValueError("이전 관측값이 유효하지 않습니다")
     return {"value": current, "previous": previous,
             "change_pct": (current / previous - 1) * 100,
             "change_pp": current - previous,
-            "date": str(df.iloc[-1, 0]), "previous_date": str(df.iloc[-2, 0])}
+            "date": current_date, "previous_date": previous_date}
 
 @st.cache_data(ttl=900, show_spinner=False)
 def cached_oil_prices():
@@ -172,8 +190,9 @@ else:
                                   "확대 · 위험 증가 가능" if credit["change_pp"] > 0 else
                                   "축소 · 위험 완화 가능" if credit["change_pp"] < 0 else "변화 없음")
             st.caption(f"최근 발표일: {credit['date']} · 비교일: {credit['previous_date']} · 발표 지연 가능 · 전 거래일이 아닌 전 관측일 기준")
-        except Exception:
+        except Exception as exc:
             st.warning("하이일드 신용스프레드 데이터를 가져오지 못했습니다. 잠시 후 다시 확인해 주세요.")
+            st.caption(f"조회 오류: {type(exc).__name__}: {exc}")
         st.subheader("🔔 현재 매수 신호")
         signals=[r for r in rows if r["signal"]]
         if signals:
