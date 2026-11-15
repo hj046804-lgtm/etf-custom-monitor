@@ -511,8 +511,9 @@ else:
                     "RSI 값":round(r["rsi"],1) if r["rsi"] is not None else None,
                     "거래량 배수":round(r["volume_ratio"],2) if r["volume_ratio"] is not None else None})
             frame=pd.DataFrame(display)
-            with st.expander("📋 전체 상세 데이터 표 보기"):
-                st.dataframe(frame,hide_index=True,use_container_width=True)
+            st.markdown("#### 📋 전체 ETF 한눈에 보기")
+            st.caption("카드 아래에서 모든 ETF의 조건 충족 여부를 표로 비교할 수 있어요. 열을 눌러 정렬할 수도 있습니다.")
+            st.dataframe(frame,hide_index=True,use_container_width=True,height=min(650, 38 * (len(frame) + 1) + 10))
             st.download_button("📥 검사 결과 CSV",frame.to_csv(index=False).encode("utf-8-sig"),"etf_signals.csv","text/csv")
         if errors:
             with st.expander(f"⚠️ 데이터 조회 실패 {len(errors)}건"):
