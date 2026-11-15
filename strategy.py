@@ -94,8 +94,8 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
             vol_ok = bool(pd.notna(last['vol_ratio']) and last['vol_ratio'] >= 1.20)
             bb_ok = bool(pd.notna(prev['BB_lower']) and pd.notna(last['BB_lower']) and prev['Close'] < prev['BB_lower'] and last['Close'] >= last['BB_lower'])
             technical_count = sum([rsi_ok, macd_ok, vol_ok, bb_ok])
-            market_ok = market['vix_ok'] or market['yield_ok']
-            signal = market_ok and technical_count >= 3
+            market_ok = True  # Market indicators are reference-only, not buy gates.
+            signal = technical_count >= 3
             # Supplementary ATR-based five-session indicative range; not SigmaRange's proprietary model.
             atr = float(last['ATR14']) if pd.notna(last['ATR14']) else None
             band_half = atr * (5 ** 0.5) if atr is not None else None
