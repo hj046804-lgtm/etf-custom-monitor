@@ -9,36 +9,36 @@ st.set_page_config(page_title="나만의 ETF 매수 알림",page_icon="📈",lay
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-:root{color-scheme:dark}
+:root{color-scheme:light}
 html,body,[class*="css"],[data-testid="stApp"]{font-family:Inter,'Noto Sans KR',sans-serif}
-[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 94% 4%,rgba(155,105,247,.22),transparent 34%),radial-gradient(circle at 2% 78%,rgba(116,99,223,.19),transparent 39%),#11142c;color:#f6f0ff}
-[data-testid="stHeader"]{background:rgba(17,20,44,.86)}
+[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 90% 0%,#f4e7ff 0%,transparent 38%),radial-gradient(circle at 0% 65%,#ffe7f1 0%,transparent 45%),#fff9fd;color:#302344}
+[data-testid="stHeader"]{background:rgba(255,249,253,.9)}
 [data-testid="stMainBlockContainer"]{max-width:1320px;padding-top:1.15rem;padding-bottom:3rem}
-[data-testid="stSidebar"]{background:#191b3c}
-h1,h2,h3{letter-spacing:-.035em;color:#faf4ff!important}
+[data-testid="stSidebar"]{background:#fff0f8}
+h1,h2,h3{letter-spacing:-.035em;color:#38264d!important}
 h2{font-size:1.35rem!important;font-weight:750!important;margin-top:1.5rem!important}
-p,[data-testid="stCaptionContainer"]{color:#c7bee4}
-[data-testid="stMetric"]{background:linear-gradient(140deg,#292a55,#202343);border:1px solid #7464ad;border-radius:21px;padding:17px 18px;box-shadow:0 8px 24px rgba(11,9,34,.24);min-height:105px}
-[data-testid="stMetricLabel"]{color:#cfc4f4!important;font-size:.88rem}
-[data-testid="stMetricValue"]{color:#fff7ff!important;font-weight:750;letter-spacing:-.04em}
-[data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#675c9c!important}
-[data-testid="stExpander"]{background:#242647;border:1px solid #655a99;border-radius:19px;overflow:hidden}
-[data-testid="stDataFrame"],[data-testid="stTable"]{border:1px solid #615a94;border-radius:16px;overflow:hidden}
-div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#a766ef,#e67ac2);color:#fff;border:1px solid #d79af7;border-radius:15px;font-weight:700;box-shadow:0 6px 20px rgba(163,91,224,.24)}
-div.stButton>button:not([kind="primary"]){background:#29284d;border:1px solid #7765aa;color:#f0e7ff;border-radius:14px}
-div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#222443!important;border-color:#7468a5!important;border-radius:14px!important}
-hr{border-color:#50497d!important}
-.premium-hero{position:relative;overflow:hidden;border:1px solid #8f77c6;border-radius:26px;padding:29px 30px;margin:5px 0 23px;background:radial-gradient(circle at 88% 15%,rgba(233,158,235,.26),transparent 31%),linear-gradient(115deg,#343165,#292b60 58%,#4a326a);box-shadow:0 14px 35px rgba(11,9,34,.26)}
-.premium-hero:after{content:"☁️  ✦  🌙";position:absolute;right:25px;top:22px;font-size:2.1rem;opacity:.86}
-.premium-eyebrow{color:#edc4ff;font-size:.76rem;letter-spacing:.13em;font-weight:800}
+p,[data-testid="stCaptionContainer"]{color:#756782}
+[data-testid="stMetric"]{background:linear-gradient(140deg,#fff,#fff0f8);border:1px solid #f5c7df;border-radius:21px;padding:17px 18px;box-shadow:0 8px 24px rgba(190,104,151,.12);min-height:105px}
+[data-testid="stMetricLabel"]{color:#8e6887!important;font-size:.88rem}
+[data-testid="stMetricValue"]{color:#3b294e!important;font-weight:750;letter-spacing:-.04em}
+[data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#efc5df!important}
+[data-testid="stExpander"]{background:#fff6fc;border:1px solid #f2c8e2;border-radius:19px;overflow:hidden}
+[data-testid="stDataFrame"],[data-testid="stTable"]{border:1px solid #e8bfdc;border-radius:16px;overflow:hidden}
+div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#f17eae,#ba8be9);color:white;border:1px solid #f2b2d2;border-radius:15px;font-weight:700;box-shadow:0 6px 20px rgba(225,125,179,.2)}
+div.stButton>button:not([kind="primary"]){background:#fff0f8;border:1px solid #e7bad8;color:#62416d;border-radius:14px}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#fff!important;border-color:#e7bdda!important;border-radius:14px!important}
+hr{border-color:#f0cde3!important}
+.premium-hero{position:relative;overflow:hidden;border:1px solid #f1bfde;border-radius:26px;padding:29px 30px;margin:5px 0 23px;background:radial-gradient(circle at 85% 20%,rgba(211,173,255,.42),transparent 36%),linear-gradient(110deg,#fff2fb,#ffe6f2 55%,#eee4ff);box-shadow:0 14px 35px rgba(203,128,175,.16)}
+.premium-hero:after{content:"🐱 💗 ✨";position:absolute;right:25px;top:22px;font-size:2rem}
+.premium-eyebrow{color:#c96f9e;font-size:.76rem;letter-spacing:.12em;font-weight:800}
 .premium-hero h1{font-size:clamp(1.5rem,3vw,2.3rem);margin:9px 0 8px;font-weight:800}
-.premium-hero p{color:#e3d8f6;font-size:.88rem;margin:0;max-width:75%}
-.premium-chip{display:inline-block;margin-top:14px;border:1px solid #a58ad6;background:#43346e;color:#f3d5ff;padding:6px 12px;border-radius:30px;font-size:.76rem;font-weight:700}
+.premium-hero p{color:#795f83;font-size:.88rem;margin:0;max-width:75%}
+.premium-chip{display:inline-block;margin-top:14px;border:1px solid #efb9d7;background:#fff7fc;color:#b66190;padding:6px 12px;border-radius:30px;font-size:.76rem;font-weight:700}
 .stAlert{border-radius:16px}
 @media(max-width:650px){
  [data-testid="stMainBlockContainer"]{padding:1rem .85rem 3rem}
  .premium-hero{padding:21px 17px;border-radius:20px}
- .premium-hero:after{font-size:1.35rem;right:12px;top:10px}
+ .premium-hero:after{font-size:1.2rem;right:10px;top:10px}
  .premium-hero p{max-width:100%}
  [data-testid="stMetric"]{padding:12px 13px;min-height:88px}
  [data-testid="stMetricValue"]{font-size:1.4rem!important}
@@ -46,10 +46,10 @@ hr{border-color:#50497d!important}
 }
 </style>
 <div class="premium-hero">
- <div class="premium-eyebrow">✦ MOONLIGHT ETF MONITOR ✦</div>
- <h1>🌙 미국 ETF 매수 알림 대시보드 💜</h1>
- <p>✨ 별빛 아래 나만의 ETF 분석 · 기술적 매수 조건과 시장 지표를 한눈에 확인해요</p>
- <span class="premium-chip">🐰 완료 일봉 기반 분석 · 자동매수 없음</span>
+ <div class="premium-eyebrow">♡ CUTE ETF MONITOR ♡</div>
+ <h1>🐱 미국 ETF 매수 알림 대시보드 💗</h1>
+ <p>🌸 나만의 ETF 분석 · 기술적 매수 조건과 시장 지표를 한눈에 확인해요</p>
+ <span class="premium-chip">✨ 완료 일봉 기반 분석 · 자동매수 없음</span>
 </div>
 """,unsafe_allow_html=True)
 try:
@@ -177,11 +177,11 @@ try:
             fig.add_hline(y=threshold, row=3, col=1, line_color="#64748b",
                           line_dash="dot", line_width=1)
         fig.update_yaxes(range=[0, 100], row=3, col=1)
-    fig.update_layout(template="plotly_dark", paper_bgcolor="#1d1e3e", plot_bgcolor="#242547",
-        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#e4d8fa"),
+    fig.update_layout(template="plotly_white", paper_bgcolor="#fff7fc", plot_bgcolor="#fffafd",
+        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#6b557b"),
         xaxis_rangeslider_visible=False, dragmode="pan", hovermode="x unified",
         legend=dict(orientation="h", y=1.06, x=0), showlegend=True)
-    fig.update_xaxes(showgrid=True, gridcolor="#4b416f", showline=False)
+    fig.update_xaxes(showgrid=True, gridcolor="#f0d9e8", showline=False)
     fig.update_yaxes(showgrid=True, gridcolor="#263149", side="right")
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar":True, "scrollZoom":True})
     st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 모든 지표는 선택한 봉 단위 기준")
