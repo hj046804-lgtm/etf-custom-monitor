@@ -123,11 +123,12 @@ st.warning("알림은 GitHub Actions에서 별도로 검사해 텔레그램으�
 
 
 st.divider()
-st.subheader("🧪 최근 5년 전략 백테스트")
+st.subheader("🧪 최근 5년 전략 백테스트 · 10일 / 30일 / 90일")
+st.success("✅ 백테스트 최신 버전: 10·30·90거래일 (v2)")
 st.caption("A 기존: VIX/금리 중 1개 + 기술 3/4 · B 개선: A + SPY 200일선 위. 신호일 종가 확인 후 다음 거래일 시가 매수, 신호일로부터 10·30·90거래일째 종가 청산. 배당·수수료·슬리피지 미반영.")
 st.caption("ETF별 출시일에 따라 분석 가능한 기간이 다르며, 동일 종목의 연속 신호도 각각 집계합니다. 과거 성과는 미래 수익을 보장하지 않습니다.")
 @st.cache_data(ttl=86400,show_spinner=False)
-def cached_backtest(tickers):
+def cached_backtest(tickers, version="10-30-90-v2"):
     from backtest import run_backtest
     return run_backtest(list(tickers))
 if st.button("▶️ 5년 백테스트 실행",key="run_backtest"):
@@ -138,7 +139,7 @@ if st.button("▶️ 5년 백테스트 실행",key="run_backtest"):
 if st.session_state.get("show_backtest") and active:
     with st.spinner("과거 10년 데이터를 불러와 5년간의 신호를 계산 중입니다. 종목 수에 따라 시간이 걸립니다..."):
         try:
-            bt_summary, bt_events, bt_errors, bt_start = cached_backtest(tuple(active))
+            bt_summary, bt_events, bt_errors, bt_start = cached_backtest(tuple(active), "10-30-90-v2")
             st.write(f"분석 시작일: {bt_start} · 활성 ETF {len(active)}개")
             st.dataframe(bt_summary,hide_index=True,use_container_width=True)
             st.caption("승률은 수익률 > 0인 신호의 비율이며, 미완료 보유기간은 해당 기간 표본에서 제외됩니다.")
