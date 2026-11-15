@@ -124,7 +124,7 @@ st.warning("알림은 GitHub Actions에서 별도로 검사해 텔레그램으�
 
 st.divider()
 st.subheader("🧪 최근 5년 전략 백테스트")
-st.caption("A 기존: VIX/금리 중 1개 + 기술 3/4 · B 개선: A + SPY 200일선 위. 신호일 종가 확인 후 다음 거래일 시가 매수, 신호일로부터 5·10·20거래일째 종가 청산. 배당·수수료·슬리피지 미반영.")
+st.caption("A 기존: VIX/금리 중 1개 + 기술 3/4 · B 개선: A + SPY 200일선 위. 신호일 종가 확인 후 다음 거래일 시가 매수, 신호일로부터 10·21·63거래일째 종가 청산 (약 2주·1개월·3개월). 배당·수수료·슬리피지 미반영.")
 st.caption("ETF별 출시일에 따라 분석 가능한 기간이 다르며, 동일 종목의 연속 신호도 각각 집계합니다. 과거 성과는 미래 수익을 보장하지 않습니다.")
 @st.cache_data(ttl=86400,show_spinner=False)
 def cached_backtest(tickers):
