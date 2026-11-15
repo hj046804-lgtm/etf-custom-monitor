@@ -1,1 +1,9 @@
-{"etfs":[]}
+{
+  "etfs": [
+    {
+      "ticker": "SOXX",
+      "name": "iShares PHLX SOX Semiconductor ",
+      "active": true
+    }
+  ]
+}
