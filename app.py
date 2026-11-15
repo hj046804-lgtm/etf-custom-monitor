@@ -513,6 +513,13 @@ else:
             frame=pd.DataFrame(display)
             st.markdown("#### 📋 전체 ETF 한눈에 보기")
             st.caption("카드 아래에서 모든 ETF의 조건 충족 여부를 표로 비교할 수 있어요. 열을 눌러 정렬할 수도 있습니다.")
+            st.markdown("""
+            <style>
+            /* ETF scan table: near-black surface with subtle neutral dividers */
+            div[data-testid="stDataFrame"]{background:#08090d!important;border:1px solid #272b34!important;border-radius:12px!important}
+            div[data-testid="stDataFrame"] iframe{background:#08090d!important}
+            </style>
+            """,unsafe_allow_html=True)
             st.dataframe(frame,hide_index=True,use_container_width=True,height=min(650, 38 * (len(frame) + 1) + 10))
             st.download_button("📥 검사 결과 CSV",frame.to_csv(index=False).encode("utf-8-sig"),"etf_signals.csv","text/csv")
         if errors:
