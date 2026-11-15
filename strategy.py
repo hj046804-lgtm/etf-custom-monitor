@@ -67,7 +67,7 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
         if len(vix) < 2 or len(tnx) < 11 or len(spy) < 200:
             raise ValueError('시장 데이터 부족')
         vix_value = float(vix['Close'].iloc[-1])
-        vix_recent_fear = bool((vix['Close'].tail(5) >= 22).any())
+        vix_recent_fear = bool((vix['Close'].tail(10) >= 20).any())
         vix_falling = bool(vix['Close'].iloc[-1] < vix['Close'].iloc[-2])
         yield_value = float(tnx['Close'].iloc[-1])
         yield_avg = float(tnx['Close'].iloc[-11:-1].mean())
