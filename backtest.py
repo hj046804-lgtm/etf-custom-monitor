@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from strategy import prices, indicators, latest_complete
 
-HORIZONS = ((10, '2주'), (21, '1개월'), (63, '3개월'))
+HORIZONS = ((10, '10일'), (30, '30일'), (90, '90일'))
 
 def run_backtest(tickers):
     cutoff = pd.Timestamp(datetime.now(ZoneInfo("America/New_York")).date()) - pd.DateOffset(years=5)
