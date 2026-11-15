@@ -161,6 +161,37 @@ def cached_oil_prices():
             result[name] = {"error": str(exc)}
     return result
 
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_vix3m_reference():
+    """Cboe official daily VIX3M closing value; reference only."""
+    import requests
+    from io import StringIO
+    url = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    response = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+    response.raise_for_status()
+    lines = response.text.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.strip().upper().startswith("DATE,"))
+    df = pd.read_csv(StringIO("\n".join(lines[start:])))
+    df.columns = [str(x).strip().upper() for x in df.columns]
+    df["DATE"] = pd.to_datetime(df["DATE"])
+    df["CLOSE"] = pd.to_numeric(df["CLOSE"], errors="coerce")
+    df = df.dropna(subset=["DATE", "CLOSE"]).sort_values("DATE")
+    if df.empty:
+        raise ValueError("VIX3M 종가 데이터 없음")
+    last = df.iloc[-1]
+    return {"value": float(last["CLOSE"]), "date": str(last["DATE"].date())}
+
+def vix_base_score(vix):
+    """Illustrative SigmaRange-described VIX anchor scale, no confirmation bonuses."""
+    if vix <= 15:
+        return 33.0
+    if vix < 20:
+        return 33.0 + (vix - 15.0) * (34.0 / 5.0)
+    if vix < 35:
+        return 67.0 + (vix - 20.0) * (33.0 / 15.0)
+    return 100.0
+
 @st.cache_data(ttl=900,show_spinner=False)
 def cached_scan(tickers, version="sigma-20day-v2"):
     return scan(list(tickers))
@@ -168,6 +199,7 @@ if st.button("🔄 최신 데이터 다시 확인",type="primary"):
     cached_scan.clear()
     cached_oil_prices.clear()
     cached_credit_spread.clear()
+    cached_vix3m_reference.clear()
 if not active:
     st.info("모니터링할 ETF를 검색해서 추가하고 ON으로 설정해 주세요.")
 else:
@@ -197,6 +229,27 @@ else:
         c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
         st.caption(f"SPY 기준일 {market['spy_date']} · VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
         st.caption("WTI·브렌트유: 최근 선물 일봉 종가(지연 가능), 전 거래일 대비 등락률 · 매수 조건 및 텔레그램 알림에 미반영")
+        st.subheader("🎛️ BUY & SELL Indicator · VIX 참고")
+        st.caption("SigmaRange 공개 설명의 VIX 구간을 참고한 자체 기초 점수 · 원본 지표와 동일하지 않음 · 매수 조건 및 알림 미반영")
+        vix_now = market["vix"]
+        base_score = vix_base_score(vix_now)
+        base_zone = "BUY 관심 구간" if vix_now >= 20 else "SELL/낮은 공포 구간" if vix_now <= 15 else "NEUTRAL"
+        st.metric("VIX 기반 기초 점수 (확인 신호 가산 전)", f"{base_score:.0f}/100", f"VIX {vix_now:.2f} · {base_zone}", delta_color="off")
+        st.progress(int(base_score))
+        st.caption("VIX ≤ 15: 33점 · VIX 20: 67점 · VIX ≥ 35: 100점 · 구간 내 선형 보간. 높을수록 공포가 큰 구간이며 매수 보장은 아님.")
+        try:
+            vix3m = cached_vix3m_reference()
+            if vix3m["date"] != market["vix_date"]:
+                st.warning(f"VIX({market['vix_date']})와 VIX3M({vix3m['date']}) 기준일이 달라 비율을 계산하지 않았습니다.")
+                st.metric("VIX3M (참고)", f"{vix3m['value']:.2f}")
+            else:
+                term_ratio = vix_now / vix3m["value"]
+                term_status = "역전·공포" if term_ratio >= 1 else "가파른 콘탱고" if term_ratio < 0.85 else "중립"
+                st.metric("기간구조 VIX / VIX3M", f"{term_ratio:.2f}", term_status, delta_color="off")
+                st.caption(f"VIX3M {vix3m['value']:.2f} · 동일 기준일 {vix3m['date']} · 1 이상 역전 / 0.85 미만 콘탱고")
+        except Exception as exc:
+            st.caption(f"VIX3M 데이터 조회 불가: {type(exc).__name__}. 점수에는 반영하지 않았습니다.")
+        st.caption("VIX 옵션 풋/콜 5일 합산: 미연결 (Cboe 일별 VIX 옵션 거래량의 안정적인 5일 조회가 필요). 확인 신호 +8점과 과거 SPY 20일 성과는 아직 미구현.")
         st.subheader("🏦 하이일드 신용스프레드 참고")
         st.caption("FRED · ICE BofA US High Yield OAS · 최신 발표된 두 관측일 비교 · 매수 조건과 알림에 미반영")
         try:
