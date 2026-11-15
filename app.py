@@ -75,7 +75,7 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 - **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
 **매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
 @st.cache_data(ttl=900,show_spinner=False)
-def cached_scan(tickers):
+def cached_scan(tickers, version="range-v2"):
     return scan(list(tickers))
 if st.button("🔄 최신 데이터 다시 확인",type="primary"):
     cached_scan.clear()
