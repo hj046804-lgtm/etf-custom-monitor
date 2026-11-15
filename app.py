@@ -6,8 +6,48 @@ from html import escape
 from strategy import scan
 from watchlist_store import load, save
 st.set_page_config(page_title="나만의 ETF 매수 알림",page_icon="📈",layout="wide")
-st.title("📈 나만의 ETF 매수 알림")
-st.caption("선택한 ETF만 매일 검사 · 자동매수 없음 · 기술 조건 기반 매수 신호 · 시장 지표 참고용")
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+:root{color-scheme:dark}
+html,body,[class*="css"],[data-testid="stApp"]{font-family:Inter,'Noto Sans KR',sans-serif}
+[data-testid="stAppViewContainer"]{background:radial-gradient(ellipse 850px 560px at 92% 3%,rgba(50,74,158,.18),transparent 65%),radial-gradient(ellipse 600px 500px at 0% 70%,rgba(90,48,161,.13),transparent 70%),#090f1c;color:#edf3ff}
+[data-testid="stHeader"]{background:rgba(9,15,28,.82)}
+[data-testid="stMainBlockContainer"]{max-width:1320px;padding-top:1.25rem;padding-bottom:3rem}
+[data-testid="stSidebar"]{background:#0e1628}
+h1,h2,h3{letter-spacing:-.035em;color:#f4f7ff!important}
+h2{font-size:1.35rem!important;font-weight:750!important;margin-top:1.5rem!important}
+p,[data-testid="stCaptionContainer"]{color:#b0bdd3}
+[data-testid="stMetric"]{background:linear-gradient(145deg,rgba(30,43,66,.96),rgba(17,26,44,.96));border:1px solid #2c3c59;border-radius:17px;padding:17px 18px;box-shadow:0 10px 30px rgba(0,0,0,.14);min-height:105px}
+[data-testid="stMetricLabel"]{color:#a9bbd6!important;font-size:.88rem}
+[data-testid="stMetricValue"]{color:#f4f7ff!important;font-weight:750;letter-spacing:-.04em}
+[data-testid="stVerticalBlockBorderWrapper"]>div{border-color:#30405c!important}
+[data-testid="stExpander"]{background:rgba(22,33,54,.75);border:1px solid #30405c;border-radius:16px;overflow:hidden}
+[data-testid="stDataFrame"],[data-testid="stTable"]{border:1px solid #30405c;border-radius:14px;overflow:hidden}
+div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#216de8,#6749cc);color:#fff;border:1px solid #5474d5;border-radius:12px;font-weight:700;box-shadow:0 6px 20px rgba(40,93,211,.2)}
+div.stButton>button:not([kind="primary"]){background:#19253d;border:1px solid #334563;color:#dbe8ff;border-radius:11px}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#131e32!important;border-color:#354563!important;border-radius:12px!important}
+hr{border-color:#273955!important}
+.premium-hero{border:1px solid #33476b;border-radius:23px;padding:24px 27px;margin:5px 0 23px;background:linear-gradient(120deg,rgba(29,53,100,.85),rgba(24,28,60,.86) 58%,rgba(41,27,77,.83));box-shadow:0 14px 40px rgba(0,0,0,.18)}
+.premium-eyebrow{color:#76b5ff;font-size:.76rem;letter-spacing:.16em;font-weight:800}
+.premium-hero h1{font-size:clamp(1.55rem,3vw,2.3rem);margin:7px 0 7px;font-weight:800}
+.premium-hero p{color:#c2cee3;font-size:.88rem;margin:0}
+.premium-chip{display:inline-block;margin-top:14px;border:1px solid #405f9a;background:#182d50;color:#9cc8ff;padding:5px 11px;border-radius:30px;font-size:.76rem;font-weight:700}
+@media(max-width:650px){
+ [data-testid="stMainBlockContainer"]{padding:1rem .85rem 3rem}
+ .premium-hero{padding:19px 17px;border-radius:18px}
+ [data-testid="stMetric"]{padding:12px 13px;min-height:88px}
+ [data-testid="stMetricValue"]{font-size:1.4rem!important}
+ h2{font-size:1.18rem!important}
+}
+</style>
+<div class="premium-hero">
+ <div class="premium-eyebrow">MARKET INTELLIGENCE · ETF MONITOR</div>
+ <h1>📈 ETF Market Monitor</h1>
+ <p>나만의 미국 ETF 매수 알림 대시보드 · 기술적 매수 조건과 시장 공포 지표를 한눈에</p>
+ <span class="premium-chip">● 완료 일봉 기반 분석</span>
+</div>
+""",unsafe_allow_html=True)
 try:
     repo=st.secrets["GITHUB_REPO"]
     token=st.secrets["GITHUB_TOKEN"]
@@ -31,7 +71,7 @@ except Exception as e:
     st.stop()
 watch.setdefault("etfs",[])
 st.info("매수 신호: RSI·MACD·거래량·볼린저 4개 중 3개 이상 · VIX·10년물 금리·SPY 200일선은 참고용 (매수 판정 미반영)")
-st.subheader("ETF 검색 및 추가")
+st.subheader("🔎 ETF 검색 및 추가")
 q=st.text_input("ETF 이름 또는 티커 검색",placeholder="예: QQQ, SOXX, S&P 500")
 results=[]
 if q.strip():
@@ -50,7 +90,7 @@ if results:
             watch["etfs"].append({"ticker":symbol,"name":name,"active":True})
             save(repo,token,watch,sha);st.rerun()
 elif q.strip(): st.caption("검색 결과가 없습니다. 미국 ETF 이름이나 티커를 다시 입력하세요.")
-st.subheader("내 모니터링 ETF")
+st.subheader("🗂️ 내 모니터링 ETF")
 if not watch["etfs"]: st.write("아직 등록한 ETF가 없습니다.")
 for i,item in enumerate(watch["etfs"]):
     a,b,c=st.columns([4,2,1])
@@ -64,7 +104,7 @@ for i,item in enumerate(watch["etfs"]):
 active=[x["ticker"] for x in watch["etfs"] if x.get("active",True)]
 
 st.divider()
-st.subheader("📊 선택한 ETF 매수 조건 검사")
+st.subheader("📊 시장 대시보드 · ETF 매수 조건 검사")
 st.caption("미국 증시 완료 일봉 기준 · 선택한 활성 ETF만 검사 · 자동매수 없음")
 with st.expander("📋 매수 조건 4개 + 시장 참고 지표"):
     st.markdown("""- **SPY 200일선:** SPY 종가와 200일 이동평균선 비교 (참고용, 매수 판정 미반영)
@@ -292,10 +332,10 @@ else:
             nx = 180 + 136 * math.cos(theta)
             ny = 184 - 136 * math.sin(theta)
             gauge = f"""<svg viewBox="0 0 360 235" style="width:100%;max-width:320px;display:block;margin:0 auto" role="img" aria-label="BUY SELL 참고 점수 {overall:.0f}점">
-              <path d="M 48 184 A 132 132 0 0 1 180 52" fill="none" stroke="#854252" stroke-width="18"/>
-              <path d="M 180 52 A 132 132 0 0 1 267 85" fill="none" stroke="#9ca3af" stroke-width="18"/>
-              <path d="M 267 85 A 132 132 0 0 1 312 184" fill="none" stroke="#28735b" stroke-width="18"/>
-              <circle cx="{nx:.1f}" cy="{ny:.1f}" r="12" fill="#111827" stroke="#d1d5db" stroke-width="6"/>
+              <path d="M 48 184 A 132 132 0 0 1 180 52" fill="none" stroke="#f45b76" stroke-width="18"/>
+              <path d="M 180 52 A 132 132 0 0 1 267 85" fill="none" stroke="#f3c74e" stroke-width="18"/>
+              <path d="M 267 85 A 132 132 0 0 1 312 184" fill="none" stroke="#29c98b" stroke-width="18"/>
+              <circle cx="{nx:.1f}" cy="{ny:.1f}" r="12" fill="#111827" stroke="#71b6ff" stroke-width="6"/>
               <text x="180" y="161" text-anchor="middle" font-size="54" font-weight="700" fill="#f4f5f8">{overall:.0f}<tspan font-size="20" fill="#aab0be">/100</tspan></text>
               <text x="180" y="191" text-anchor="middle" font-size="14" fill="#b4bbca">VIX {vix_now:.2f}</text>
               <text x="43" y="214" font-size="14" fill="#b9bfcc">SELL</text>
@@ -304,7 +344,7 @@ else:
               <text x="262" y="53" font-size="12" fill="#aeb5c4">VIX 20</text>
             </svg>"""
             st.markdown(f"""
-            <div style="background:linear-gradient(145deg,#242a37,#191e2b);border:1px solid #3b4252;border-radius:23px;padding:16px 15px;color:#e9ecf4;margin:16px 0">
+            <div style="background:linear-gradient(135deg,#1b2944,#171e34 55%,#211d3d);box-shadow:0 14px 38px rgba(0,0,0,.24);border:1px solid #405680;border-radius:23px;padding:16px 15px;color:#e9ecf4;margin:16px 0">
               <div style="font-size:19px;font-weight:750">◉ BUY &amp; SELL Indicator</div>
               <div style="color:#aeb5c4;font-size:13px;margin:5px 0 9px">VIX + VIX3M 기반 · 완료 일봉 · 자체 참고 점수</div>
               {gauge}
@@ -365,7 +405,7 @@ else:
             if filter_status!="전체": sigma_df=sigma_df[sigma_df["구간"]==filter_status]
             st.markdown("""
 <style>
-.sigma-card{background:#19202c;border:1px solid #374151;border-radius:16px;padding:16px 18px;margin:10px 0;color:#f1f5f9}
+.sigma-card{background:linear-gradient(135deg,#192943,#171e33);border:1px solid #364a6c;border-radius:16px;padding:16px 18px;margin:10px 0;color:#f1f5f9}
 .sigma-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .sigma-name{font-weight:800;font-size:1.2rem}.sigma-price{font-weight:800;font-size:1.2rem}
 .sigma-change{font-weight:650;font-size:.94rem;margin-left:8px}
