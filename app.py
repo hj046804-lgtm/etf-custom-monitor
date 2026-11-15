@@ -105,7 +105,7 @@ active=[x["ticker"] for x in watch["etfs"] if x.get("active",True)]
 
 st.divider()
 st.subheader("📈 종목 차트")
-st.caption("증권사 스타일 캔들 · 5일/20일 이동평균선 · 거래량 | 참고용 지연 시세")
+st.caption("증권사 스타일 캔들 · 이동평균선 · 볼린저밴드 · 거래량 · RSI | 참고용 지연 시세")
 chart_options = list(dict.fromkeys(active + ["QQQ", "SPY", "SCHD", "SOXX", "VOO"]))
 chart_a, chart_b, chart_c = st.columns([2, 1, 1])
 with chart_a:
@@ -114,6 +114,8 @@ with chart_b:
     chart_interval = st.selectbox("봉 종류", ["일봉", "주봉", "월봉"], key="candle_interval")
 with chart_c:
     chart_period = st.selectbox("조회 기간", ["3개월", "6개월", "1년", "2년"], index=1, key="candle_period")
+show_bb = st.checkbox("볼린저밴드 (20, 2) 표시", value=True, key="chart_bb")
+show_rsi = st.checkbox("RSI (14) 표시", value=True, key="chart_rsi")
 @st.cache_data(ttl=1800, show_spinner=False)
 def cached_candle_prices(ticker, period, interval):
     data = yf.download(ticker, period=period, interval=interval, auto_adjust=True, progress=False, threads=False)
@@ -130,12 +132,23 @@ try:
     candles = cached_candle_prices(chart_ticker, period_code, interval_code).copy()
     candles["MA5"] = candles["Close"].rolling(5).mean()
     candles["MA20"] = candles["Close"].rolling(20).mean()
+    mid = candles["Close"].rolling(20).mean()
+    dev = candles["Close"].rolling(20).std(ddof=0)
+    candles["BB_upper"] = mid + 2 * dev
+    candles["BB_lower"] = mid - 2 * dev
+    rsi_delta = candles["Close"].diff()
+    rsi_up = rsi_delta.clip(lower=0).ewm(alpha=1/14, adjust=False, min_periods=14).mean()
+    rsi_down = (-rsi_delta.clip(upper=0)).ewm(alpha=1/14, adjust=False, min_periods=14).mean()
+    rs = rsi_up / rsi_down.replace(0, float("nan"))
+    candles["RSI14"] = 100 - 100 / (1 + rs)
+    candles.loc[(rsi_down == 0) & (rsi_up > 0), "RSI14"] = 100
+    candles.loc[(rsi_down == 0) & (rsi_up == 0), "RSI14"] = 50
     last_price = float(candles["Close"].iloc[-1])
     prev_price = float(candles["Close"].iloc[-2]) if len(candles) > 1 else last_price
     delta = (last_price / prev_price - 1) * 100 if prev_price else 0
     st.metric(f"{chart_ticker} · {chart_interval} 종가", f"${last_price:,.2f}", f"{delta:+.2f}% 직전 봉 대비")
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.035,
-                        row_heights=[0.74, 0.26])
+    fig = make_subplots(rows=3 if show_rsi else 2, cols=1, shared_xaxes=True, vertical_spacing=0.035,
+                        row_heights=[0.61, 0.19, 0.20] if show_rsi else [0.74, 0.26])
     fig.add_trace(go.Candlestick(x=candles.index, open=candles["Open"], high=candles["High"],
         low=candles["Low"], close=candles["Close"], name="가격",
         increasing_line_color="#e83d72", increasing_fillcolor="#e83d72",
@@ -144,18 +157,30 @@ try:
         line=dict(color="#ff5b84", width=1.5)), row=1, col=1)
     fig.add_trace(go.Scatter(x=candles.index, y=candles["MA20"], name="20봉선",
         line=dict(color="#b78aff", width=1.5)), row=1, col=1)
+    if show_bb:
+        fig.add_trace(go.Scatter(x=candles.index, y=candles["BB_upper"], name="볼밴 상단",
+            line=dict(color="#e5b15b", width=1.3)), row=1, col=1)
+        fig.add_trace(go.Scatter(x=candles.index, y=candles["BB_lower"], name="볼밴 하단",
+            line=dict(color="#e5b15b", width=1.3)), row=1, col=1)
     vol_colors = ["#e83d72" if close >= open_ else "#2f9dff"
                   for open_, close in zip(candles["Open"], candles["Close"])]
     fig.add_trace(go.Bar(x=candles.index, y=candles["Volume"], name="거래량",
         marker_color=vol_colors, opacity=0.9), row=2, col=1)
+    if show_rsi:
+        fig.add_trace(go.Scatter(x=candles.index, y=candles["RSI14"], name="RSI(14)",
+            line=dict(color="#62d6e7", width=1.7)), row=3, col=1)
+        for threshold in (30, 70):
+            fig.add_hline(y=threshold, row=3, col=1, line_color="#64748b",
+                          line_dash="dot", line_width=1)
+        fig.update_yaxes(range=[0, 100], row=3, col=1)
     fig.update_layout(template="plotly_dark", paper_bgcolor="#090f1c", plot_bgcolor="#0d1526",
-        height=560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#b6c6df"),
+        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#b6c6df"),
         xaxis_rangeslider_visible=False, dragmode="pan", hovermode="x unified",
         legend=dict(orientation="h", y=1.06, x=0), showlegend=True)
     fig.update_xaxes(showgrid=True, gridcolor="#263149", showline=False)
     fig.update_yaxes(showgrid=True, gridcolor="#263149", side="right")
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar":True, "scrollZoom":True})
-    st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 이동평균선은 선택한 봉 단위 기준")
+    st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 모든 지표는 선택한 봉 단위 기준")
 except Exception as chart_error:
     st.warning(f"차트 조회 실패: {chart_error}")
 
