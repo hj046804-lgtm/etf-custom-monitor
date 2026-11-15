@@ -67,7 +67,11 @@ if st.button("지금 검사",disabled=not active):
     with st.spinner("시세와 지표를 확인하고 있어요..."):
         rows,market,errors=scan(active)
     if market:
-        st.write("VIX:",round(market["vix"],2),"· 10년물 금리:",round(market["yield"],2),"%")
-        st.dataframe(pd.DataFrame([{"ETF":r["ticker"],"일봉":r["date"],"매수 신호":"🔔" if r["signal"] else "—","기술 조건":str(r["technical_count"])+"/4","RSI":r["rsi_ok"],"MACD":r["macd_ok"],"거래량":r["volume_ok"],"볼린저":r["bb_ok"]} for r in rows]),hide_index=True,use_container_width=True)
+        st.subheader("시장 조건 (2개 중 1개 이상)")
+        st.write("VIX:",round(market["vix"],2)," / 기준 22 미만 / 충족:",market["vix_ok"])
+        st.write("10년물 금리:",round(market["yield"],3),"% / 이전 10거래일 평균:",round(market["yield_avg"],3),"% / 충족:",market["yield_ok"])
+        st.write("시장 조건 최종:", "✅ 충족" if market["vix_ok"] or market["yield_ok"] else "❌ 미충족")
+        st.subheader("ETF 기술 조건")
+        st.dataframe(pd.DataFrame([{"ETF":r["ticker"],"일봉":r["date"],"매수 신호":"🔔" if r["signal"] else "—","기술 조건":str(r["technical_count"])+"/4","RSI 수치":round(r["rsi"],2),"RSI 충족":r["rsi_ok"],"MACD":r["macd_ok"],"거래량 비율":round(r["volume_ratio"]*100,1) if r["volume_ratio"] is not None else None,"거래량 충족":r["volume_ok"],"볼린저":r["bb_ok"]} for r in rows]),hide_index=True,use_container_width=True)
     if errors: st.warning("\n".join(errors))
 st.caption("무료 데이터는 지연·누락될 수 있으며 알림은 투자 권유가 아닙니다.")
