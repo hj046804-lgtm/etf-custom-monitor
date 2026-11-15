@@ -24,11 +24,6 @@
       "ticker": "SCHD",
       "name": "Schwab US Dividend Equity ETF",
       "active": true
-    },
-    {
-      "ticker": "NASA",
-      "name": "Tema Space Innovators ETF",
-      "active": true
     }
   ]
 }
