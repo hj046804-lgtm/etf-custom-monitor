@@ -123,14 +123,6 @@ else:
                     "20일 범위 위치(%)":round(r["position20_pct"],1) if r.get("position20_pct") is not None else None,
                 })
             sigma_df=pd.DataFrame(sigma_display)
-            st.markdown("**📍 최근 20거래일 가격 위치별 보기**")
-            location_filter=st.radio("가격 위치",["전체","저점","중간","고점"],horizontal=True,key="price_location_filter")
-            if location_filter!="전체":
-                def _price_zone(value):
-                    if pd.isna(value): return "확인 불가"
-                    return "저점" if value <= 25 else "고점" if value >= 75 else "중간"
-                sigma_df=sigma_df[sigma_df["20일 범위 위치(%)"].map(_price_zone)==location_filter]
-            st.caption("저점: 최근 20일 가격 범위의 하위 25% · 중간: 25~75% · 고점: 상위 25%. 실제 바닥·천장을 의미하지 않습니다.")
             filter_status=st.selectbox("시그마 구간 필터",["전체","과매도 (−1.5σ 이하)","−1σ 이하","정상 범위","+1σ 이상","과열 (+1.5σ 이상)"])
             if filter_status!="전체": sigma_df=sigma_df[sigma_df["구간"]==filter_status]
             st.dataframe(sigma_df,hide_index=True,use_container_width=True)
