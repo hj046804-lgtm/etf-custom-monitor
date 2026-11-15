@@ -274,27 +274,52 @@ else:
         c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
         st.caption(f"SPY 기준일 {market['spy_date']} · VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
         st.caption("WTI·브렌트유: 최근 선물 일봉 종가(지연 가능), 전 거래일 대비 등락률 · 매수 조건 및 텔레그램 알림에 미반영")
-        st.subheader("🎛️ BUY & SELL Indicator · VIX + VIX3M")
-        st.caption("VIX 70% + VIX/VIX3M 기간구조 30% · 자체 실험적 공포 점수, SigmaRange 원본과 다름 · 기존 ETF 매수 알림에는 미반영")
+        # Visual-only dashboard: two-input calculation remains unchanged.
         vix_now = market["vix"]
         vix_score = vix_base_score(vix_now)
-        st.metric("VIX 기초 점수 (70%)", f"{vix_score:.1f}/100", f"VIX {vix_now:.2f}", delta_color="off")
         try:
             vix3m = cached_vix3m_reference()
             if vix3m["date"] != market["vix_date"] or vix3m["value"] <= 0:
                 raise ValueError(f"기준일 불일치: VIX {market['vix_date']} / VIX3M {vix3m['date']}")
             ratio = vix_now / vix3m["value"]
-            # 0.85 or below: low near-term fear (0); 1.05 or above: inverted fear (100).
             ratio_score = clamp_score((ratio - 0.85) / 0.20 * 100)
             overall = 0.70 * vix_score + 0.30 * ratio_score
-            zone = "높은 공포 · 분할매수 관심" if overall >= 67 else "중립 · 관찰" if overall >= 34 else "낮은 공포 · 추격매수 주의"
-            st.metric("종합 공포 참고 점수", f"{overall:.0f}/100", zone, delta_color="off")
-            st.progress(int(round(overall)))
-            st.metric("VIX/VIX3M 기간구조 (30%)", f"{ratio:.3f}", f"기간구조 점수 {ratio_score:.1f}/100", delta_color="off")
-            st.caption(f"동일 기준일 {vix3m['date']} · VIX3M {vix3m['value']:.2f} · 기간구조 비율 0.85 이하=0점, 1.05 이상=100점, 사이 선형 계산")
+            zone = "BUY 관심" if overall >= 67 else "NEUTRAL" if overall >= 34 else "SELL 관심"
+            zone_note = "공포가 높은 구간 · 매수 보장 아님" if overall >= 67 else "확인 신호 중립" if overall >= 34 else "공포가 낮은 구간 · 매도 보장 아님"
+            # SVG semicircle: needle follows score on the 0-100 scale.
+            import math
+            theta = math.pi * (1 - overall / 100)
+            nx = 180 + 136 * math.cos(theta)
+            ny = 184 - 136 * math.sin(theta)
+            gauge = f"""<svg viewBox="0 0 360 235" style="width:100%;max-width:420px;display:block;margin:0 auto" role="img" aria-label="BUY SELL 참고 점수 {overall:.0f}점">
+              <path d="M 48 184 A 132 132 0 0 1 180 52" fill="none" stroke="#854252" stroke-width="18"/>
+              <path d="M 180 52 A 132 132 0 0 1 267 85" fill="none" stroke="#9ca3af" stroke-width="18"/>
+              <path d="M 267 85 A 132 132 0 0 1 312 184" fill="none" stroke="#28735b" stroke-width="18"/>
+              <circle cx="{nx:.1f}" cy="{ny:.1f}" r="12" fill="#111827" stroke="#d1d5db" stroke-width="6"/>
+              <text x="180" y="161" text-anchor="middle" font-size="54" font-weight="700" fill="#f4f5f8">{overall:.0f}<tspan font-size="20" fill="#aab0be">/100</tspan></text>
+              <text x="180" y="191" text-anchor="middle" font-size="14" fill="#b4bbca">VIX {vix_now:.2f}</text>
+              <text x="43" y="214" font-size="14" fill="#b9bfcc">SELL</text>
+              <text x="278" y="214" font-size="14" fill="#b9bfcc">BUY</text>
+              <text x="80" y="53" font-size="12" fill="#aeb5c4">VIX 15</text>
+              <text x="262" y="53" font-size="12" fill="#aeb5c4">VIX 20</text>
+            </svg>"""
+            st.markdown(f"""
+            <div style="background:linear-gradient(145deg,#242a37,#191e2b);border:1px solid #3b4252;border-radius:28px;padding:24px 20px;color:#e9ecf4;margin:16px 0">
+              <div style="font-size:23px;font-weight:750">◉ BUY &amp; SELL Indicator</div>
+              <div style="color:#aeb5c4;font-size:13px;margin:7px 0 16px">VIX + VIX3M 기반 · 완료 일봉 · 자체 참고 점수</div>
+              {gauge}
+              <div style="text-align:center;margin:-4px 0 20px"><span style="border:1px solid #646a78;background:#343947;border-radius:16px;padding:8px 17px;font-weight:700">{zone}</span><span style="color:#b8bfcd;margin-left:10px;font-size:13px">{zone_note}</span></div>
+              <div style="border-top:1px solid #3b4252;padding-top:18px;font-size:15px">
+                <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:13px"><span style="color:#b7bfce">VIX 공포지수 · 70%</span><strong>{vix_now:.2f} · {vix_score:.0f}점</strong></div>
+                <div style="display:flex;justify-content:space-between;gap:10px"><span style="color:#b7bfce">기간구조 VIX÷VIX3M · 30%</span><strong>{ratio:.3f} · {ratio_score:.0f}점</strong></div>
+              </div>
+              <div style="color:#929cac;font-size:12px;margin-top:19px">데이터 기준 {escape(str(vix3m["date"]))} · VIX3M {vix3m["value"]:.2f}</div>
+            </div>
+            """, unsafe_allow_html=True)
         except Exception as exc:
+            st.markdown('<div style="background:#242a37;border:1px solid #3b4252;border-radius:24px;padding:24px;color:#eef0f6"><b style="font-size:23px">◉ BUY &amp; SELL Indicator</b><p>VIX + VIX3M 기반 · 종합 점수 확인 불가</p></div>', unsafe_allow_html=True)
             st.warning(f"VIX3M 확인 불가: {exc}. 종합 점수를 표시하지 않습니다.")
-        st.caption("VIX 점수: VIX 15=33점, 20=67점, 35 이상=100점(구간별 선형 보간). 70:30 가중치와 구간 기준은 백테스트로 검증되지 않은 임시 설계입니다. 67점 이상은 상승 확률 67%라는 뜻이 아닙니다.")
+        st.caption("VIX 70% + VIX/VIX3M 30% · 0~33 SELL 관심 / 34~66 NEUTRAL / 67~100 BUY 관심 · 점수는 시장 공포 참고용이며 매수·매도 신호나 상승 확률이 아닙니다. 기존 ETF 매수 조건 및 알림에는 영향이 없습니다.")
         st.subheader("🏦 하이일드 신용스프레드 참고")
         st.caption("FRED · ICE BofA US High Yield OAS · 최신 발표된 두 관측일 비교 · 매수 조건과 알림에 미반영")
         try:
