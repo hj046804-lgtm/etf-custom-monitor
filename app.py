@@ -447,16 +447,72 @@ else:
                 st.write("0σ = 최근 20거래일 종가의 평균(오늘 완료된 일봉 포함). 1σ = 같은 20개 종가의 모집단 표준편차(ddof=0). σ 점수 = (현재 종가 − 20일 평균) ÷ 20일 표준편차.")
                 st.warning("σ는 현재 가격의 상대적 위치를 나타내며 실제 저점·고점, 상승·하락 확률이나 향후 가격 범위를 보장하지 않습니다. 기존 매수 조건과 텔레그램 알림에는 반영되지 않습니다.")
         st.subheader("📊 전체 ETF 검사 결과")
+        st.caption("완료된 미국 증시 일봉 기준 · 기술 조건 4개 중 3개 이상 충족 시 매수 신호 · 시장 지표는 참고용")
         if rows:
+            ordered = sorted(rows, key=lambda x: (not x["signal"], -x["technical_count"], x["ticker"]))
+            n_signals = sum(bool(r["signal"]) for r in ordered)
+            n_close = sum(r["technical_count"] == 2 for r in ordered)
+            stat1, stat2, stat3 = st.columns(3)
+            stat1.metric("검사 종목", f"{len(ordered)}개")
+            stat2.metric("매수 신호", f"{n_signals}개")
+            stat3.metric("조건 2/4 충족", f"{n_close}개")
+            st.markdown("""
+            <style>
+            .etf-result-card{background:linear-gradient(120deg,#1a2944,#141d32 72%,#211c38);border:1px solid #344867;border-radius:18px;padding:17px 19px;margin:12px 0;box-shadow:0 10px 25px rgba(0,0,0,.16)}
+            .etf-result-card.signal{border-color:#2dbd90;box-shadow:inset 3px 0 #27cb94,0 12px 27px rgba(0,0,0,.17)}
+            .etf-result-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+            .etf-result-ticker{font-size:1.2rem;font-weight:800;letter-spacing:.02em;color:#f5f8ff}
+            .etf-result-price{color:#aebdd4;font-size:.85rem;margin-top:3px}
+            .etf-result-status{border-radius:30px;padding:7px 11px;background:#25334e;color:#b9c9e4;border:1px solid #3a5074;font-size:.78rem;font-weight:750}
+            .etf-result-status.buy{background:rgba(26,134,102,.18);color:#66efb8;border-color:#2b9b79}
+            .etf-result-bar{height:7px;background:#27344e;border-radius:20px;overflow:hidden;margin:16px 0 12px}
+            .etf-result-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#3c8bff,#9168ed)}
+            .etf-result-card.signal .etf-result-fill{background:linear-gradient(90deg,#25b891,#5ce7b4)}
+            .etf-result-checks{display:flex;gap:7px;flex-wrap:wrap}
+            .etf-result-pill{font-size:.76rem;border-radius:9px;padding:6px 9px;background:#1b2b43;color:#aebdd4;border:1px solid #33445f}
+            .etf-result-pill.yes{background:rgba(23,120,100,.15);color:#68e2bc;border-color:#2c786b}
+            .etf-result-meta{margin-top:13px;color:#aebbd0;font-size:.78rem;display:flex;gap:14px;flex-wrap:wrap}
+            @media(max-width:650px){.etf-result-card{padding:14px 13px;border-radius:15px}.etf-result-ticker{font-size:1.08rem}.etf-result-pill{font-size:.71rem;padding:5px 7px}}
+            </style>
+            """,unsafe_allow_html=True)
+            for r in ordered:
+                ticker = escape(str(r["ticker"]))
+                count = int(r["technical_count"])
+                signal = bool(r["signal"])
+                checks = (("RSI 반등",r["rsi_ok"]),("MACD",r["macd_ok"]),
+                          ("거래량 120%",r["volume_ok"]),("볼린저",r["bb_ok"]))
+                pills = "".join(
+                    f'<span class="etf-result-pill {"yes" if ok else ""}">{"✓" if ok else "–"} {label}</span>'
+                    for label,ok in checks
+                )
+                ratio = r.get("volume_ratio")
+                ratio_text = f"{ratio:.2f}배" if ratio is not None else "—"
+                rsi = r.get("rsi")
+                rsi_text = f"{rsi:.1f}" if rsi is not None else "—"
+                date = escape(str(r["date"]))
+                card = (
+                    f'<div class="etf-result-card {"signal" if signal else ""}">'
+                    f'<div class="etf-result-head"><div><div class="etf-result-ticker">{ticker}</div>'
+                    f'<div class="etf-result-price">종가 ${r["close"]:,.2f} · {date}</div></div>'
+                    f'<span class="etf-result-status {"buy" if signal else ""}">'
+                    f'{"● 매수 신호 발생" if signal else f"기술 조건 {count}/4"}</span></div>'
+                    f'<div class="etf-result-bar"><div class="etf-result-fill" style="width:{count*25}%"></div></div>'
+                    f'<div class="etf-result-checks">{pills}</div>'
+                    f'<div class="etf-result-meta"><span>RSI {rsi_text}</span>'
+                    f'<span>거래량 {ratio_text}</span><span>기술 충족 {count}/4</span></div></div>'
+                )
+                st.markdown(card,unsafe_allow_html=True)
             display=[]
-            for r in sorted(rows,key=lambda x:(not x["signal"],-x["technical_count"],x["ticker"])):
+            for r in ordered:
                 display.append({"종목":r["ticker"],"기준일":r["date"],"매수 신호":"🟢 발생" if r["signal"] else "—",
                     "SPY 추세(참고)":"위" if market["spy_trend_ok"] else "아래","기술 충족":f"{r['technical_count']}/4",
                     "RSI 반등":"✅" if r["rsi_ok"] else "❌","MACD":"✅" if r["macd_ok"] else "❌",
                     "거래량 120%":"✅" if r["volume_ok"] else "❌","볼린저":"✅" if r["bb_ok"] else "❌",
-                    "RSI 값":round(r["rsi"],1),"거래량 배수":round(r["volume_ratio"],2) if r["volume_ratio"] is not None else None})
+                    "RSI 값":round(r["rsi"],1) if r["rsi"] is not None else None,
+                    "거래량 배수":round(r["volume_ratio"],2) if r["volume_ratio"] is not None else None})
             frame=pd.DataFrame(display)
-            st.dataframe(frame,hide_index=True,use_container_width=True)
+            with st.expander("📋 전체 상세 데이터 표 보기"):
+                st.dataframe(frame,hide_index=True,use_container_width=True)
             st.download_button("📥 검사 결과 CSV",frame.to_csv(index=False).encode("utf-8-sig"),"etf_signals.csv","text/csv")
         if errors:
             with st.expander(f"⚠️ 데이터 조회 실패 {len(errors)}건"):
