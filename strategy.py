@@ -51,6 +51,9 @@ def indicators(df: pd.DataFrame) -> pd.DataFrame:
     ma20 = c.rolling(20).mean()
     std20 = c.rolling(20).std(ddof=0)
     d['BB_lower'] = ma20 - 2*std20
+    prior_close = c.shift(1)
+    tr = pd.concat([(d['High']-d['Low']).abs(), (d['High']-prior_close).abs(), (d['Low']-prior_close).abs()], axis=1).max(axis=1)
+    d['ATR14'] = tr.rolling(14).mean()
     return d
 
 def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
@@ -91,7 +94,20 @@ def scan(etfs=None) -> tuple[list[dict], dict, list[str]]:
             technical_count = sum([rsi_ok, macd_ok, vol_ok, bb_ok])
             market_ok = market['vix_ok'] or market['yield_ok']
             signal = market_ok and technical_count >= 3
+            # Supplementary ATR-based five-session indicative range; not SigmaRange's proprietary model.
+            atr = float(last['ATR14']) if pd.notna(last['ATR14']) else None
+            band_half = atr * (5 ** 0.5) if atr is not None else None
+            band_low = max(0.0, float(last['Close']) - band_half) if band_half is not None else None
+            band_high = float(last['Close']) + band_half if band_half is not None else None
+            high20 = float(d['High'].tail(20).max())
+            low20 = float(d['Low'].tail(20).min())
             rows.append({'ticker': symbol, 'date': str(d.index[-1].date()),
+                         'daily_change_pct': float((last['Close']/prev['Close']-1)*100) if prev['Close'] else None,
+                         'range_low': band_low, 'range_high': band_high,
+                         'range_width_pct': float(band_half/last['Close']*100) if band_half is not None and last['Close'] else None,
+                         'range_position_pct': 50.0 if band_half is not None and band_half > 0 else None,
+                         'low20': low20, 'high20': high20,
+                         'position20_pct': float((last['Close']-low20)/(high20-low20)*100) if high20>low20 else None,
                          'close': float(last['Close']), 'rsi': float(last['RSI']),
                          'volume_ratio': float(last['vol_ratio']) if pd.notna(last['vol_ratio']) else None,
                          'rsi_ok': rsi_ok, 'macd_ok': macd_ok, 'volume_ok': vol_ok,
