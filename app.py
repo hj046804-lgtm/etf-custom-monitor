@@ -89,10 +89,40 @@ div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#3c223d!
 .etf-result-pill{background:#4a2943!important;border-color:#9d648d!important}
 .etf-result-status{background:#542c4b!important;border-color:#a96a9a!important}
 .etf-result-fill{background:linear-gradient(90deg,#ff75ac,#ef9fd6)!important}
+
+/* Midnight navy theme — high contrast on mobile */
+:root{color-scheme:dark}
+[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 92% 3%,rgba(63,111,194,.22),transparent 38%),radial-gradient(circle at 0% 68%,rgba(31,71,128,.2),transparent 44%),#091426!important;color:#f0f6ff!important}
+[data-testid="stHeader"]{background:rgba(9,20,38,.93)!important}
+[data-testid="stSidebar"]{background:#101f38!important}
+h1,h2,h3{color:#f5f9ff!important}
+p,[data-testid="stCaptionContainer"]{color:#c2d1e7!important}
+.premium-hero{background:radial-gradient(circle at 85% 20%,rgba(112,160,234,.24),transparent 36%),linear-gradient(110deg,#142b4c,#1a3457 55%,#1c2a4d)!important;border-color:#648bbd!important;box-shadow:0 0 20px rgba(72,129,211,.16)!important}
+.premium-eyebrow,.cute-divider{color:#9dcaff!important}
+.premium-hero p{color:#d9e9fc!important}
+.premium-chip{background:#203c63!important;border-color:#618fc8!important;color:#cce6ff!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"]{background:linear-gradient(135deg,#1b3457,#10243f)!important;border:1px solid #557ca9!important;color:#f6fbff!important;box-shadow:0 6px 20px rgba(0,10,29,.24)!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"] *{color:#bed6f3!important;opacity:1!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"] *{color:#ffffff!important;opacity:1!important;font-weight:800!important}
+[data-testid="stExpander"]{background:#172b48!important;border-color:#5276a2!important}
+div.stButton>button:not([kind="primary"]){background:#1c3455!important;border-color:#557ba9!important;color:#e3f0ff!important}
+div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#3376c7,#5377d5)!important;border-color:#82b5ef!important;color:#fff!important}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#142b48!important;border-color:#577ca8!important}
+.etf-result-card{background:linear-gradient(120deg,#1b3555,#12243e 72%,#1d2e4b)!important;border-color:#537ca9!important;box-shadow:0 7px 20px rgba(0,10,29,.25)!important}
+.etf-result-ticker{color:#f8fbff!important}
+.etf-result-price,.etf-result-meta{color:#c6d9ef!important}
+.etf-result-pill{background:#1d3553!important;border-color:#476d98!important;color:#d6e6f9!important}
+.etf-result-pill.yes{background:#163f42!important;border-color:#2e8879!important;color:#8ff3cf!important}
+.etf-result-status{background:#233c5c!important;border-color:#587fac!important;color:#d8eaff!important}
+.etf-result-fill{background:linear-gradient(90deg,#3c91dc,#8cafff)!important}
+div[data-testid="stDataFrame"]{background:#0d1b30!important;border-color:#354f73!important}
+div[data-testid="stDataFrame"] iframe{background:#0d1b30!important}
 </style>
 <div class="premium-hero">
  <div class="premium-eyebrow">✦ MOONLIGHT CAT ETF MONITOR ✦</div>
- <h1>💗 미국 ETF 매수 알림 대시보드 🐱</h1>
+ <h1>🌙 미국 ETF 매수 알림 대시보드 🐱</h1>
  <p>✨ 나만의 ETF 분석 · 기술적 매수 조건과 시장 지표를 한눈에 확인해요</p>
  <span class="premium-chip">✨ 완료 일봉 기반 분석 · 자동매수 없음</span>
  <div class="hero-cat"><svg class="kawaii-cat" viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="웃고 있는 귀여운 고양이">
@@ -242,11 +272,11 @@ try:
             fig.add_hline(y=threshold, row=3, col=1, line_color="#64748b",
                           line_dash="dot", line_width=1)
         fig.update_yaxes(range=[0, 100], row=3, col=1)
-    fig.update_layout(template="plotly_dark", paper_bgcolor="#29162d", plot_bgcolor="#341c36",
-        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#e6d4f7"),
+    fig.update_layout(template="plotly_dark", paper_bgcolor="#101e33", plot_bgcolor="#152742",
+        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#d6e7fa"),
         xaxis_rangeslider_visible=False, dragmode="pan", hovermode="x unified",
         legend=dict(orientation="h", y=1.06, x=0), showlegend=True)
-    fig.update_xaxes(showgrid=True, gridcolor="#60405a", showline=False)
+    fig.update_xaxes(showgrid=True, gridcolor="#2e4563", showline=False)
     fig.update_yaxes(showgrid=True, gridcolor="#263149", side="right")
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar":True, "scrollZoom":True})
     st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 모든 지표는 선택한 봉 단위 기준")
