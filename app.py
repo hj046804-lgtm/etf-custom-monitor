@@ -585,10 +585,10 @@ else:
                 st.markdown(card,unsafe_allow_html=True)
             display=[]
             for r in ordered:
-                display.append({"종목":r["ticker"],"기준일":r["date"],"매수 신호":"🟢 발생" if r["signal"] else "—",
-                    "SPY 추세(참고)":"위" if market["spy_trend_ok"] else "아래","기술 충족":f"{r['technical_count']}/4",
-                    "RSI 반등":"✅" if r["rsi_ok"] else "❌","MACD":"✅" if r["macd_ok"] else "❌",
-                    "거래량 120%":"✅" if r["volume_ok"] else "❌","볼린저":"✅" if r["bb_ok"] else "❌",
+                display.append({"종목":r["ticker"],"기준일":r["date"],"매수 신호":"O" if r["signal"] else "X",
+                    "SPY 추세(참고)":"O" if market["spy_trend_ok"] else "X","기술 충족":f"{r['technical_count']}/4",
+                    "RSI 반등":"O" if r["rsi_ok"] else "X","MACD":"O" if r["macd_ok"] else "X",
+                    "거래량 120%":"O" if r["volume_ok"] else "X","볼린저":"O" if r["bb_ok"] else "X",
                     "RSI 값":round(r["rsi"],1) if r["rsi"] is not None else None,
                     "거래량 배수":round(r["volume_ratio"],2) if r["volume_ratio"] is not None else None})
             frame=pd.DataFrame(display)
