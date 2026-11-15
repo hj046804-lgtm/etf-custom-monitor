@@ -119,6 +119,36 @@ div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#142b48!
 .etf-result-fill{background:linear-gradient(90deg,#3c91dc,#8cafff)!important}
 div[data-testid="stDataFrame"]{background:#0d1b30!important;border-color:#354f73!important}
 div[data-testid="stDataFrame"] iframe{background:#0d1b30!important}
+
+/* Cute monochrome black theme — readable high contrast */
+:root{color-scheme:dark}
+[data-testid="stAppViewContainer"]{background:radial-gradient(circle at 90% 0%,rgba(120,120,135,.11),transparent 38%),#08090c!important;color:#f5f5f7!important}
+[data-testid="stHeader"]{background:rgba(8,9,12,.94)!important}
+[data-testid="stSidebar"]{background:#101115!important}
+h1,h2,h3{color:#fafafa!important}
+p,[data-testid="stCaptionContainer"]{color:#c3c4cb!important}
+.premium-hero{background:linear-gradient(120deg,#191a20,#111216 58%,#232329)!important;border:1px solid #53545e!important;box-shadow:0 12px 32px rgba(0,0,0,.4)!important}
+.premium-eyebrow,.cute-divider{color:#f4c5dc!important}
+.premium-hero p{color:#e2e2e8!important}
+.premium-chip{background:#29292f!important;border-color:#67616a!important;color:#ffe0ed!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"]{background:linear-gradient(135deg,#24252b,#15161b)!important;border:1px solid #595b65!important;color:#fff!important;box-shadow:0 8px 20px rgba(0,0,0,.3)!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricLabel"] *{color:#d4d5dd!important;opacity:1!important}
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"],
+[data-testid="stAppViewContainer"] [data-testid="stMetric"] [data-testid="stMetricValue"] *{color:#ffffff!important;opacity:1!important;font-weight:800!important}
+[data-testid="stExpander"]{background:#1b1c22!important;border-color:#55565e!important}
+div.stButton>button:not([kind="primary"]){background:#24252b!important;border-color:#5a5c65!important;color:#f4f4f6!important}
+div.stButton>button[kind="primary"],div.stDownloadButton>button{background:linear-gradient(110deg,#45464f,#646571)!important;border-color:#9899a5!important;color:#fff!important}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#1b1c22!important;border-color:#666771!important}
+.etf-result-card{background:linear-gradient(120deg,#24252b,#16171c 72%,#202127)!important;border-color:#565862!important;box-shadow:0 8px 24px rgba(0,0,0,.32)!important}
+.etf-result-ticker{color:#fff!important}
+.etf-result-price,.etf-result-meta{color:#d0d1d8!important}
+.etf-result-pill{background:#292a31!important;border-color:#53545e!important;color:#e0e1e7!important}
+.etf-result-pill.yes{background:#153a33!important;border-color:#388d76!important;color:#8ff3cb!important}
+.etf-result-status{background:#2b2c34!important;border-color:#60616c!important;color:#e6e7ec!important}
+.etf-result-fill{background:linear-gradient(90deg,#a4a6b0,#e1e1e7)!important}
+div[data-testid="stDataFrame"]{background:#101115!important;border:1px solid #484a52!important}
+div[data-testid="stDataFrame"] iframe{background:#101115!important}
 </style>
 <div class="premium-hero">
  <div class="premium-eyebrow">✦ MOONLIGHT CAT ETF MONITOR ✦</div>
@@ -272,11 +302,11 @@ try:
             fig.add_hline(y=threshold, row=3, col=1, line_color="#64748b",
                           line_dash="dot", line_width=1)
         fig.update_yaxes(range=[0, 100], row=3, col=1)
-    fig.update_layout(template="plotly_dark", paper_bgcolor="#101e33", plot_bgcolor="#152742",
-        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#d6e7fa"),
+    fig.update_layout(template="plotly_dark", paper_bgcolor="#111217", plot_bgcolor="#1b1c22",
+        height=680 if show_rsi else 560, margin=dict(l=6,r=8,t=22,b=10), font=dict(color="#e1e2e8"),
         xaxis_rangeslider_visible=False, dragmode="pan", hovermode="x unified",
         legend=dict(orientation="h", y=1.06, x=0), showlegend=True)
-    fig.update_xaxes(showgrid=True, gridcolor="#2e4563", showline=False)
+    fig.update_xaxes(showgrid=True, gridcolor="#383a43", showline=False)
     fig.update_yaxes(showgrid=True, gridcolor="#263149", side="right")
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar":True, "scrollZoom":True})
     st.caption(f"최근 봉 날짜: {candles.index[-1].date()} · Yahoo Finance 제공 · 실시간 시세 아님 · 모든 지표는 선택한 봉 단위 기준")
