@@ -18,7 +18,7 @@ def prices(symbol: str, period='9mo') -> pd.DataFrame:
         raise ValueError(f'{symbol}: 시세 데이터 없음')
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
-    df = df[['Close','High','Low','Volume']].copy()
+    df = df[['Open','Close','High','Low','Volume']].copy()
     df.index = pd.to_datetime(df.index).tz_localize(None) if df.index.tz is not None else pd.to_datetime(df.index)
     return df.dropna(subset=['Close']).sort_index()
 
