@@ -24,6 +24,11 @@
       "ticker": "SCHD",
       "name": "Schwab US Dividend Equity ETF",
       "active": true
+    },
+    {
+      "ticker": "IBB",
+      "name": "iShares Biotechnology ETF",
+      "active": true
     }
   ]
 }
