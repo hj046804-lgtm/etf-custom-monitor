@@ -13,7 +13,7 @@ def run_backtest(tickers):
     market_frames = {}
     for key, ticker in (("vix", "^VIX"), ("yield", "^TNX"), ("spy", "SPY")):
         try:
-            market_frames[key] = latest_complete(prices(ticker, period="7y"))
+            market_frames[key] = latest_complete(prices(ticker, period="10y"))
         except Exception as exc:
             raise ValueError(f"시장 데이터 {ticker} 다운로드 실패: {exc}")
     vix = market_frames["vix"]["Close"]
@@ -25,7 +25,7 @@ def run_backtest(tickers):
     events = []
     for ticker in tickers:
         try:
-            d = indicators(latest_complete(prices(ticker, period="7y")))
+            d = indicators(latest_complete(prices(ticker, period="10y")))
             if "Open" not in d.columns:
                 raise ValueError("시가(Open) 데이터 없음")
             if len(d) < 35:
