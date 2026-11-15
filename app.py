@@ -117,8 +117,8 @@ else:
                     "5거래일 참고 하단($)":round(r["range_low"],2) if r.get("range_low") is not None else None,
                     "5거래일 참고 상단($)":round(r["range_high"],2) if r.get("range_high") is not None else None,
                     "참고 변동 폭(±%)":round(r["range_width_pct"],1) if r.get("range_width_pct") is not None else None,
-                    "최근 20일 저점($)":round(r["low20"],2),
-                    "최근 20일 고점($)":round(r["high20"],2),
+                    "최근 20일 저점($)":round(r["low20"],2) if r.get("low20") is not None else None,
+                    "최근 20일 고점($)":round(r["high20"],2) if r.get("high20") is not None else None,
                     "20일 범위 내 위치(%)":round(pos,1) if pos is not None else None,
                     "가격 위치":"저점 부근" if pos is not None and pos <=25 else "고점 부근" if pos is not None and pos >=75 else "중간" if pos is not None else "확인 불가",
                 })
