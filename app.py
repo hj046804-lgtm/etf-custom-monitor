@@ -274,62 +274,27 @@ else:
         c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
         st.caption(f"SPY 기준일 {market['spy_date']} · VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
         st.caption("WTI·브렌트유: 최근 선물 일봉 종가(지연 가능), 전 거래일 대비 등락률 · 매수 조건 및 텔레그램 알림에 미반영")
-        st.subheader("🎛️ BUY & SELL · 종합 저점 관심 점수")
-        st.caption("자체 설계한 공포·가격 조정 종합 점수 (SigmaRange 원본과 다름). 높을수록 저점 관심 환경에 가까움. 상승 확률이나 매수 신호가 아니며 기존 알림에는 미반영.")
-        components = []
-        unavailable = []
+        st.subheader("🎛️ BUY & SELL Indicator · VIX + VIX3M")
+        st.caption("VIX 70% + VIX/VIX3M 기간구조 30% · 자체 실험적 공포 점수, SigmaRange 원본과 다름 · 기존 ETF 매수 알림에는 미반영")
         vix_now = market["vix"]
-        components.append(("VIX 공포", 20, clamp_score((vix_now - 12) / 23 * 100), f"VIX {vix_now:.2f}", market["vix_date"]))
+        vix_score = vix_base_score(vix_now)
+        st.metric("VIX 기초 점수 (70%)", f"{vix_score:.1f}/100", f"VIX {vix_now:.2f}", delta_color="off")
         try:
             vix3m = cached_vix3m_reference()
             if vix3m["date"] != market["vix_date"] or vix3m["value"] <= 0:
-                raise ValueError("VIX와 VIX3M 기준일 불일치")
+                raise ValueError(f"기준일 불일치: VIX {market['vix_date']} / VIX3M {vix3m['date']}")
             ratio = vix_now / vix3m["value"]
-            components.append(("VIX/VIX3M 기간구조", 15, clamp_score((ratio - 0.75) / 0.30 * 100), f"비율 {ratio:.3f}", vix3m["date"]))
-        except Exception as exc:
-            unavailable.append(f"VIX/VIX3M: {exc}")
-        # Cboe daily put/call history requires a verified reliable feed; do not invent observations.
-        unavailable.append("옵션 풋/콜: 신뢰 가능한 연속 일별 데이터 연결 전 (15점 제외)")
-        try:
-            credit_for_score = cached_credit_spread()
-            credit_value = credit_for_score["value"]
-            # High yield OAS in percentage points; broad heuristic, not a validated forecast.
-            credit_score = clamp_score((credit_value - 2.5) / 4.5 * 100)
-            components.append(("하이일드 신용스프레드", 20, credit_score, f"{credit_value:.2f}%p", credit_for_score["date"]))
-        except Exception as exc:
-            unavailable.append(f"신용스프레드: {type(exc).__name__}")
-        try:
-            breadth = cached_sector_breadth()
-            breadth_score = clamp_score((1 - breadth["above"] / breadth["total"]) * 100)
-            components.append(("섹터 ETF 시장 폭 대용치", 15, breadth_score, f"200일선 위 {breadth['above']}/{breadth['total']}개", breadth["date"]))
-        except Exception as exc:
-            unavailable.append(f"섹터 시장 폭: {exc}")
-        try:
-            longterm = cached_longterm_market()
-            if longterm["date"] != market["spy_date"]:
-                raise ValueError("SPY 가격 기준일 불일치")
-            dd_score = clamp_score(-longterm["drawdown"] / 30 * 100)
-            ma_score = clamp_score(-longterm["distance"] / 20 * 100)
-            components.append(("SPY 장기 가격 조정", 15, (dd_score + ma_score) / 2,
-                               f"52주 고점 {longterm['drawdown']:+.1f}% · 200일선 {longterm['distance']:+.1f}%", longterm["date"]))
-        except Exception as exc:
-            unavailable.append(f"장기 가격 조정: {exc}")
-        available_weight = sum(weight for _, weight, _, _, _ in components)
-        if available_weight:
-            weighted = sum(weight * score / 100 for _, weight, score, _, _ in components)
-            overall = weighted / available_weight * 100
-            st.metric("종합 참고 점수 (조회된 항목만 가중 평균)", f"{overall:.0f}/100")
+            # 0.85 or below: low near-term fear (0); 1.05 or above: inverted fear (100).
+            ratio_score = clamp_score((ratio - 0.85) / 0.20 * 100)
+            overall = 0.70 * vix_score + 0.30 * ratio_score
+            zone = "높은 공포 · 분할매수 관심" if overall >= 67 else "중립 · 관찰" if overall >= 34 else "낮은 공포 · 추격매수 주의"
+            st.metric("종합 공포 참고 점수", f"{overall:.0f}/100", zone, delta_color="off")
             st.progress(int(round(overall)))
-            st.caption(f"데이터 확보 배점: {available_weight}/100점 · 누락 항목은 0점 처리하지 않고 제외해 재가중 · 미검증 실험 점수")
-            for name, weight, score, detail, date in components:
-                st.write(f"**{name}** · {score:.0f}/100 · 배점 {weight} · {detail} · {date}")
-        else:
-            st.warning("종합 점수 계산에 필요한 데이터가 없습니다.")
-        if unavailable:
-            with st.expander(f"⚠️ 미반영 지표 {len(unavailable)}개 · 데이터 연결 상태"):
-                for note in unavailable:
-                    st.write("- " + str(note))
-        st.caption("점수는 공포/가격 하락 정도를 측정하며, 높은 점수가 반드시 매수 적기라는 뜻은 아닙니다. 가중치와 임계값은 백테스트 전 임시 설정입니다.")
+            st.metric("VIX/VIX3M 기간구조 (30%)", f"{ratio:.3f}", f"기간구조 점수 {ratio_score:.1f}/100", delta_color="off")
+            st.caption(f"동일 기준일 {vix3m['date']} · VIX3M {vix3m['value']:.2f} · 기간구조 비율 0.85 이하=0점, 1.05 이상=100점, 사이 선형 계산")
+        except Exception as exc:
+            st.warning(f"VIX3M 확인 불가: {exc}. 종합 점수를 표시하지 않습니다.")
+        st.caption("VIX 점수: VIX 15=33점, 20=67점, 35 이상=100점(구간별 선형 보간). 70:30 가중치와 구간 기준은 백테스트로 검증되지 않은 임시 설계입니다. 67점 이상은 상승 확률 67%라는 뜻이 아닙니다.")
         st.subheader("🏦 하이일드 신용스프레드 참고")
         st.caption("FRED · ICE BofA US High Yield OAS · 최신 발표된 두 관측일 비교 · 매수 조건과 알림에 미반영")
         try:
