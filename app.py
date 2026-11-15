@@ -61,17 +61,57 @@ for i,item in enumerate(watch["etfs"]):
     if c.button("삭제",key="del_"+item["ticker"]):
         watch["etfs"].pop(i);save(repo,token,watch,sha);st.rerun()
 active=[x["ticker"] for x in watch["etfs"] if x.get("active",True)]
-st.subheader("최신 매수 조건 검사")
-st.caption("미국 증시 완료 일봉 기준. 자동 알림은 GitHub Actions가 별도로 실행합니다.")
-if st.button("지금 검사",disabled=not active):
-    with st.spinner("시세와 지표를 확인하고 있어요..."):
-        rows,market,errors=scan(active)
-    if market:
-        st.subheader("시장 조건 (2개 중 1개 이상)")
-        st.write("VIX:",round(market["vix"],2)," / 기준 22 미만 / 충족:",market["vix_ok"])
-        st.write("10년물 금리:",round(market["yield"],3),"% / 이전 10거래일 평균:",round(market["yield_avg"],3),"% / 충족:",market["yield_ok"])
-        st.write("시장 조건 최종:", "✅ 충족" if market["vix_ok"] or market["yield_ok"] else "❌ 미충족")
-        st.subheader("ETF 기술 조건")
-        st.dataframe(pd.DataFrame([{"ETF":r["ticker"],"일봉":r["date"],"매수 신호":"🔔" if r["signal"] else "—","기술 조건":str(r["technical_count"])+"/4","RSI 수치":round(r["rsi"],2),"RSI 충족":r["rsi_ok"],"MACD":r["macd_ok"],"거래량 비율":round(r["volume_ratio"]*100,1) if r["volume_ratio"] is not None else None,"거래량 충족":r["volume_ok"],"볼린저":r["bb_ok"]} for r in rows]),hide_index=True,use_container_width=True)
-    if errors: st.warning("\n".join(errors))
-st.caption("무료 데이터는 지연·누락될 수 있으며 알림은 투자 권유가 아닙니다.")
+
+st.divider()
+st.subheader("📊 선택한 ETF 매수 조건 검사")
+st.caption("미국 증시 완료 일봉 기준 · 선택한 활성 ETF만 검사 · 자동매수 없음")
+with st.expander("📋 6개 조건 자세히 보기"):
+    st.markdown("""- **VIX:** 22 미만
+- **미국 10년물 금리:** 이전 10거래일 평균 이하
+- **RSI(14):** 전일 RSI 35 이하, 최근 RSI 상승
+- **MACD:** 최근 2거래일 중 골든크로스
+- **거래량:** 이전 20거래일 평균의 120% 이상
+- **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
+**매수 신호:** 시장 2개 중 1개 이상 + 기술 4개 중 3개 이상""")
+@st.cache_data(ttl=900,show_spinner=False)
+def cached_scan(tickers):
+    return scan(list(tickers))
+if st.button("🔄 최신 데이터 다시 확인",type="primary"):
+    cached_scan.clear()
+if not active:
+    st.info("모니터링할 ETF를 검색해서 추가하고 ON으로 설정해 주세요.")
+else:
+    with st.spinner("선택한 ETF와 시장 지표 분석 중..."):
+        rows,market,errors=cached_scan(tuple(active))
+    if not market:
+        st.error("시장 데이터를 불러오지 못했습니다.")
+        if errors: st.code("\\n".join(errors))
+    else:
+        c1,c2,c3,c4=st.columns(4)
+        c1.metric("VIX",f"{market['vix']:.2f}","충족" if market['vix_ok'] else "미충족")
+        c2.metric("미국 10년물 금리",f"{market['yield']:.2f}%","충족" if market['yield_ok'] else "미충족")
+        c3.metric("금리 이전 10일 평균",f"{market['yield_avg']:.2f}%")
+        c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
+        st.caption(f"VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
+        st.subheader("🔔 현재 매수 신호")
+        signals=[r for r in rows if r["signal"]]
+        if signals:
+            for r in signals:
+                st.success(f"**{r['ticker']}** · {r['date']} · 기술 조건 {r['technical_count']}/4 · 종가 ${r['close']:.2f}")
+        else: st.write("현재 조건을 충족하는 ETF가 없습니다.")
+        st.subheader("📊 전체 ETF 검사 결과")
+        if rows:
+            display=[]
+            for r in sorted(rows,key=lambda x:(not x["signal"],-x["technical_count"],x["ticker"])):
+                display.append({"종목":r["ticker"],"기준일":r["date"],"매수 신호":"🟢 발생" if r["signal"] else "—",
+                    "시장 조건":"✅" if r["market_ok"] else "❌","기술 충족":f"{r['technical_count']}/4",
+                    "RSI 반등":"✅" if r["rsi_ok"] else "❌","MACD":"✅" if r["macd_ok"] else "❌",
+                    "거래량 120%":"✅" if r["volume_ok"] else "❌","볼린저":"✅" if r["bb_ok"] else "❌",
+                    "RSI 값":round(r["rsi"],1),"거래량 배수":round(r["volume_ratio"],2) if r["volume_ratio"] is not None else None})
+            frame=pd.DataFrame(display)
+            st.dataframe(frame,hide_index=True,use_container_width=True)
+            st.download_button("📥 검사 결과 CSV",frame.to_csv(index=False).encode("utf-8-sig"),"etf_signals.csv","text/csv")
+        if errors:
+            with st.expander(f"⚠️ 데이터 조회 실패 {len(errors)}건"):
+                st.code("\\n".join(errors))
+st.warning("알림은 GitHub Actions에서 별도로 검사해 텔레그램으로 전송합니다. 무료 서비스 실행 지연이나 실패가 발생할 수 있습니다.")
