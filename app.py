@@ -736,3 +736,41 @@ else:
             with st.expander(f"⚠️ 데이터 조회 실패 {len(errors)}건"):
                 st.code("\\n".join(errors))
 st.warning("알림은 GitHub Actions에서 별도로 검사해 텔레그램으로 전송합니다. 무료 서비스 실행 지연이나 실패가 발생할 수 있습니다.")
+
+# Separate free market-wide screening; never changes the user's buy-signal logic.
+st.divider()
+st.subheader("🤖 무료 미국 ETF 시장 분석 · 오늘의 관심 TOP 5")
+st.caption("유료 AI/API 없이 작동하는 규칙 기반 퀀트 분석 · 기존 관심종목 외 미국 ETF도 탐색 · 완료된 미국 거래일 종가 기준")
+with st.expander("🔎 분석 방법과 한계"):
+    st.write("미국 주요 ETF 약 80종목을 후보로 살펴봅니다. 유동성, 20·50·200일 이동평균선, 20·60거래일 수익률, RSI(14), MACD, ATR 변동성을 평가해 점수를 산정합니다. 뉴스와 실시간 시세를 읽는 생성형 AI가 아니라 무료 규칙 기반 분석입니다.")
+    st.write("점수는 과거 데이터에 기반한 상대적 기술 점수일 뿐, 상승 확률·기대 수익률·매수 성공률이 아닙니다. 실제 미국 상장 ETF 전체를 빠짐없이 탐색하지는 않습니다.")
+    st.write("매수·매도 판단은 보유 여부, 투자 기간, 위험 감내 수준에 따라 달라지므로 보유 종목에 대한 개인화된 매도 지시는 제공하지 않습니다.")
+@st.cache_data(ttl=21600, show_spinner=False)
+def cached_free_market_screener():
+    from free_screener import screen
+    return screen(limit=5)
+try:
+    _, free_market, _ = cached_scan(tuple())
+    from free_screener import market_comment, UNIVERSE
+    st.markdown("#### 🌐 미국 증시 요약")
+    st.info(market_comment(free_market))
+except Exception as exc:
+    st.warning(f"시장 지표 조회 실패: {exc}")
+if st.button("🔍 오늘의 관심 ETF TOP 5 분석", key="free_ai_screener", use_container_width=True):
+    with st.spinner("미국 ETF 후보를 분석하고 있습니다. 처음에는 몇 분 걸릴 수 있어요."):
+        try:
+            st.session_state["free_screen_result"] = cached_free_market_screener()
+        except Exception as exc:
+            st.error(f"무료 ETF 분석 실패: {exc}")
+if "free_screen_result" in st.session_state:
+    picks, eligible, failed, universe_size = st.session_state["free_screen_result"]
+    st.caption(f"후보 {universe_size}개 중 유효 데이터·유동성 기준 통과 {eligible}개 · 분석 불가 {failed}개 · 데이터는 최대 6시간 캐시")
+    if not picks:
+        st.warning("분석 가능한 ETF가 부족해 오늘의 후보를 선정하지 않았습니다.")
+    for rank, item in enumerate(picks, 1):
+        with st.container(border=True):
+            st.markdown(f"**{rank}위 · {item['ticker']}**  |  기술 점수 **{item['score']}/100** · **{item['opinion']}**")
+            st.caption(f"기준일 {item['date']} · 종가 ${item['price']:,.2f} · 20거래일 수익률 {item['ret20']:+.1f}% · RSI {item['rsi']:.1f} · ATR/종가 {item['atr_pct']:.1f}%")
+            st.write(f"**선정 근거:** {item['reason']}")
+            st.write(f"**주의할 점:** {item['risk']}")
+st.caption("⚠️ 투자 참고용 분석이며 투자 권유·자동매매가 아닙니다. 기존 4개 매수 신호와 텔레그램 알림에는 전혀 반영되지 않습니다.")
