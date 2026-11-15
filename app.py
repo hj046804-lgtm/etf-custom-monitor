@@ -6,7 +6,7 @@ from strategy import scan
 from watchlist_store import load, save
 st.set_page_config(page_title="나만의 ETF 매수 알림",page_icon="📈",layout="wide")
 st.title("📈 나만의 ETF 매수 알림")
-st.caption("선택한 ETF만 매일 검사 · 자동매수 없음 · 개선 매수 조건 적용")
+st.caption("선택한 ETF만 매일 검사 · 자동매수 없음 · 기존 매수 신호 · SPY 200일선 참고용")
 try:
     repo=st.secrets["GITHUB_REPO"]
     token=st.secrets["GITHUB_TOKEN"]
@@ -29,7 +29,7 @@ except Exception as e:
     st.error("종목 목록을 불러오지 못했습니다: "+str(e))
     st.stop()
 watch.setdefault("etfs",[])
-st.info("개선 매수 신호: SPY 종가 > 200일선 + (VIX < 22 또는 10년물 금리 ≤ 이전 10일 평균) + 기술 4개 중 3개 이상")
+st.info("매수 신호: (VIX < 22 또는 10년물 금리 ≤ 이전 10일 평균) + 기술 4개 중 3개 이상 · SPY 200일선은 참고용")
 st.subheader("ETF 검색 및 추가")
 q=st.text_input("ETF 이름 또는 티커 검색",placeholder="예: QQQ, SOXX, S&P 500")
 results=[]
@@ -65,15 +65,15 @@ active=[x["ticker"] for x in watch["etfs"] if x.get("active",True)]
 st.divider()
 st.subheader("📊 선택한 ETF 매수 조건 검사")
 st.caption("미국 증시 완료 일봉 기준 · 선택한 활성 ETF만 검사 · 자동매수 없음")
-with st.expander("📋 7개 조건 자세히 보기"):
-    st.markdown("""- **SPY 200일선:** SPY 종가가 200일 이동평균선 초과 (필수)
+with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
+    st.markdown("""- **SPY 200일선:** SPY 종가와 200일 이동평균선 비교 (참고용, 매수 판정 미반영)
 - **VIX:** 22 미만
 - **미국 10년물 금리:** 이전 10거래일 평균 이하
 - **RSI(14):** 전일 RSI 35 이하, 최근 RSI 상승
 - **MACD:** 최근 2거래일 중 골든크로스
 - **거래량:** 이전 20거래일 평균의 120% 이상
 - **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
-**매수 신호:** SPY 200일선 위 + VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상""")
+**매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
 @st.cache_data(ttl=900,show_spinner=False)
 def cached_scan(tickers):
     return scan(list(tickers))
@@ -91,7 +91,7 @@ else:
         s1,s2,s3=st.columns(3)
         s1.metric("SPY 종가",f"${market['spy_close']:.2f}")
         s2.metric("SPY 200일 평균",f"${market['spy_ma200']:.2f}")
-        s3.metric("SPY 200일선","충족 ✅" if market["spy_trend_ok"] else "미충족 ❌")
+        s3.metric("SPY 추세 참고","200일선 위" if market["spy_trend_ok"] else "200일선 아래")
         c1,c2,c3,c4=st.columns(4)
         c1.metric("VIX",f"{market['vix']:.2f}","충족" if market['vix_ok'] else "미충족")
         c2.metric("미국 10년물 금리",f"{market['yield']:.2f}%","충족" if market['yield_ok'] else "미충족")
@@ -109,7 +109,7 @@ else:
             display=[]
             for r in sorted(rows,key=lambda x:(not x["signal"],-x["technical_count"],x["ticker"])):
                 display.append({"종목":r["ticker"],"기준일":r["date"],"매수 신호":"🟢 발생" if r["signal"] else "—",
-                    "시장 조건":"✅" if r["market_ok"] else "❌","SPY 200일선":"✅" if market["spy_trend_ok"] else "❌","기술 충족":f"{r['technical_count']}/4",
+                    "시장 조건":"✅" if r["market_ok"] else "❌","SPY 추세(참고)":"위" if market["spy_trend_ok"] else "아래","기술 충족":f"{r['technical_count']}/4",
                     "RSI 반등":"✅" if r["rsi_ok"] else "❌","MACD":"✅" if r["macd_ok"] else "❌",
                     "거래량 120%":"✅" if r["volume_ok"] else "❌","볼린저":"✅" if r["bb_ok"] else "❌",
                     "RSI 값":round(r["rsi"],1),"거래량 배수":round(r["volume_ratio"],2) if r["volume_ratio"] is not None else None})
