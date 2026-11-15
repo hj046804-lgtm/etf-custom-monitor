@@ -29,7 +29,7 @@ div.stButton>button:not([kind="primary"]){background:#fff0f8;border:1px solid #e
 div[data-baseweb="input"]>div,div[data-baseweb="select"]>div{background:#fff!important;border-color:#e7bdda!important;border-radius:14px!important}
 hr{border-color:#f0cde3!important}
 .premium-hero{position:relative;overflow:hidden;border:1px solid #f1bfde;border-radius:26px;padding:29px 30px;margin:5px 0 23px;background:radial-gradient(circle at 85% 20%,rgba(211,173,255,.42),transparent 36%),linear-gradient(110deg,#fff2fb,#ffe6f2 55%,#eee4ff);box-shadow:0 14px 35px rgba(203,128,175,.16)}
-.premium-hero:after{content:"🐱 💗 ✨";position:absolute;right:25px;top:22px;font-size:2rem}
+.kawaii-cat{width:100%;height:auto;filter:drop-shadow(0 8px 8px rgba(179,98,137,.17))}.hero-cat{position:absolute;right:20px;bottom:4px;width:155px;max-width:26%;pointer-events:none}.cute-divider{display:flex;align-items:center;gap:12px;margin:10px 0 4px;color:#bc6e9a;font-weight:800}.cute-divider .mini-cat{width:65px;flex-shrink:0}.cute-divider span{font-size:.9rem}
 .premium-eyebrow{color:#c96f9e;font-size:.76rem;letter-spacing:.12em;font-weight:800}
 .premium-hero h1{font-size:clamp(1.5rem,3vw,2.3rem);margin:9px 0 8px;font-weight:800}
 .premium-hero p{color:#795f83;font-size:.88rem;margin:0;max-width:75%}
@@ -38,7 +38,7 @@ hr{border-color:#f0cde3!important}
 @media(max-width:650px){
  [data-testid="stMainBlockContainer"]{padding:1rem .85rem 3rem}
  .premium-hero{padding:21px 17px;border-radius:20px}
- .premium-hero:after{font-size:1.2rem;right:10px;top:10px}
+ .hero-cat{width:82px;right:5px;bottom:6px;opacity:.92}
  .premium-hero p{max-width:100%}
  [data-testid="stMetric"]{padding:12px 13px;min-height:88px}
  [data-testid="stMetricValue"]{font-size:1.4rem!important}
@@ -50,6 +50,16 @@ hr{border-color:#f0cde3!important}
  <h1>🐱 미국 ETF 매수 알림 대시보드 💗</h1>
  <p>🌸 나만의 ETF 분석 · 기술적 매수 조건과 시장 지표를 한눈에 확인해요</p>
  <span class="premium-chip">✨ 완료 일봉 기반 분석 · 자동매수 없음</span>
+ <div class="hero-cat"><svg class="kawaii-cat" viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="웃고 있는 귀여운 고양이">
+<path d="M28 70 Q22 35 36 13 Q55 15 67 34 Q91 25 115 34 Q131 13 148 14 Q159 41 153 70 Q169 95 150 116 Q132 136 91 136 Q46 136 28 115 Q13 95 28 70Z" fill="#fffdfb" stroke="#8d5d67" stroke-width="5" stroke-linejoin="round"/>
+<path d="M37 26 L43 48 L57 38Z M140 26 L124 40 L144 50Z" fill="#ffcadc"/>
+<ellipse cx="57" cy="85" rx="6" ry="8" fill="#593a47"/><ellipse cx="120" cy="85" rx="6" ry="8" fill="#593a47"/>
+<ellipse cx="40" cy="100" rx="15" ry="9" fill="#ffbfd1" opacity=".8"/><ellipse cx="138" cy="100" rx="15" ry="9" fill="#ffbfd1" opacity=".8"/>
+<path d="M83 94 Q89 89 95 94 Q89 101 83 94Z" fill="#d78299"/>
+<path d="M89 99 Q79 111 71 102 M89 99 Q99 111 107 102" fill="none" stroke="#80515c" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M21 93 L4 88 M22 103 L4 106 M155 93 L173 88 M154 103 L173 106" stroke="#8d5d67" stroke-width="3" stroke-linecap="round"/>
+<path d="M51 126 Q43 136 53 143 L73 143 Q82 140 78 132 M106 132 Q102 140 112 143 L132 143 Q141 136 130 126" fill="#fffdfb" stroke="#8d5d67" stroke-width="4" stroke-linejoin="round"/>
+</svg></div>
 </div>
 """,unsafe_allow_html=True)
 try:
@@ -108,6 +118,16 @@ for i,item in enumerate(watch["etfs"]):
 active=[x["ticker"] for x in watch["etfs"] if x.get("active",True)]
 
 st.divider()
+st.markdown("""<div class="cute-divider"><div class="mini-cat"><svg class="kawaii-cat" viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="웃고 있는 귀여운 고양이">
+<path d="M28 70 Q22 35 36 13 Q55 15 67 34 Q91 25 115 34 Q131 13 148 14 Q159 41 153 70 Q169 95 150 116 Q132 136 91 136 Q46 136 28 115 Q13 95 28 70Z" fill="#fffdfb" stroke="#8d5d67" stroke-width="5" stroke-linejoin="round"/>
+<path d="M37 26 L43 48 L57 38Z M140 26 L124 40 L144 50Z" fill="#ffcadc"/>
+<ellipse cx="57" cy="85" rx="6" ry="8" fill="#593a47"/><ellipse cx="120" cy="85" rx="6" ry="8" fill="#593a47"/>
+<ellipse cx="40" cy="100" rx="15" ry="9" fill="#ffbfd1" opacity=".8"/><ellipse cx="138" cy="100" rx="15" ry="9" fill="#ffbfd1" opacity=".8"/>
+<path d="M83 94 Q89 89 95 94 Q89 101 83 94Z" fill="#d78299"/>
+<path d="M89 99 Q79 111 71 102 M89 99 Q99 111 107 102" fill="none" stroke="#80515c" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M21 93 L4 88 M22 103 L4 106 M155 93 L173 88 M154 103 L173 106" stroke="#8d5d67" stroke-width="3" stroke-linecap="round"/>
+<path d="M51 126 Q43 136 53 143 L73 143 Q82 140 78 132 M106 132 Q102 140 112 143 L132 143 Q141 136 130 126" fill="#fffdfb" stroke="#8d5d67" stroke-width="4" stroke-linejoin="round"/>
+</svg></div><span>🐾 고양이와 함께 차트를 살펴봐요 ♡</span></div>""",unsafe_allow_html=True)
 st.subheader("📈 종목 차트")
 st.caption("증권사 스타일 캔들 · 이동평균선 · 볼린저밴드 · 거래량 · RSI | 참고용 지연 시세")
 chart_options = list(dict.fromkeys(active + ["QQQ", "SPY", "SCHD", "SOXX", "VOO"]))
