@@ -75,6 +75,32 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 - **거래량:** 이전 20거래일 평균의 120% 이상
 - **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
 **매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_credit_spread():
+    """ICE BofA US High Yield OAS from FRED, latest two available observations."""
+    from datetime import date, timedelta
+    from urllib.request import Request, urlopen
+    from io import StringIO
+    start = (date.today() - timedelta(days=45)).isoformat()
+    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=" + start
+    req = Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; ETFMonitor/1.0)"})
+    with urlopen(req, timeout=12) as response:
+        raw = response.read().decode("utf-8-sig")
+    df = pd.read_csv(StringIO(raw))
+    if "BAMLH0A0HYM2" not in df.columns:
+        raise ValueError("FRED 응답 형식이 변경되었습니다")
+    df["BAMLH0A0HYM2"] = pd.to_numeric(df["BAMLH0A0HYM2"], errors="coerce")
+    df = df.dropna(subset=["BAMLH0A0HYM2"])
+    if len(df) < 2:
+        raise ValueError("최근 유효 관측값이 부족합니다")
+    current, previous = float(df["BAMLH0A0HYM2"].iloc[-1]), float(df["BAMLH0A0HYM2"].iloc[-2])
+    if previous <= 0:
+        raise ValueError("전일 관측값이 유효하지 않습니다")
+    return {"value": current, "previous": previous,
+            "change_pct": (current / previous - 1) * 100,
+            "change_pp": current - previous,
+            "date": str(df.iloc[-1, 0]), "previous_date": str(df.iloc[-2, 0])}
+
 @st.cache_data(ttl=900, show_spinner=False)
 def cached_oil_prices():
     """Latest completed daily WTI and Brent futures closes, display-only."""
@@ -104,6 +130,7 @@ def cached_scan(tickers, version="sigma-20day-v2"):
 if st.button("🔄 최신 데이터 다시 확인",type="primary"):
     cached_scan.clear()
     cached_oil_prices.clear()
+    cached_credit_spread.clear()
 if not active:
     st.info("모니터링할 ETF를 검색해서 추가하고 ON으로 설정해 주세요.")
 else:
@@ -133,6 +160,20 @@ else:
         c4.metric("매수 신호 종목",f"{sum(r['signal'] for r in rows)}개")
         st.caption(f"SPY 기준일 {market['spy_date']} · VIX 기준일 {market['vix_date']} · 금리 기준일 {market['yield_date']} · ETF 기준일은 표에 표시")
         st.caption("WTI·브렌트유: 최근 선물 일봉 종가(지연 가능), 전 거래일 대비 등락률 · 매수 조건 및 텔레그램 알림에 미반영")
+        st.subheader("🏦 하이일드 신용스프레드 참고")
+        st.caption("FRED · ICE BofA US High Yield OAS · 최신 발표된 두 관측일 비교 · 매수 조건과 알림에 미반영")
+        try:
+            credit = cached_credit_spread()
+            credit_cols = st.columns(2)
+            credit_cols[0].metric("하이일드 신용스프레드", f"{credit['value']:.2f}%p",
+                                  f"{credit['change_pct']:+.2f}% (전 관측일 대비)",
+                                  delta_color="inverse")
+            credit_cols[1].metric("실제 스프레드 변화", f"{credit['change_pp']:+.2f}%p",
+                                  "확대 · 위험 증가 가능" if credit["change_pp"] > 0 else
+                                  "축소 · 위험 완화 가능" if credit["change_pp"] < 0 else "변화 없음")
+            st.caption(f"최근 발표일: {credit['date']} · 비교일: {credit['previous_date']} · 발표 지연 가능 · 전 거래일이 아닌 전 관측일 기준")
+        except Exception:
+            st.warning("하이일드 신용스프레드 데이터를 가져오지 못했습니다. 잠시 후 다시 확인해 주세요.")
         st.subheader("🔔 현재 매수 신호")
         signals=[r for r in rows if r["signal"]]
         if signals:
