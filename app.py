@@ -76,7 +76,7 @@ with st.expander("📋 매수 조건 6개 + SPY 참고 지표"):
 - **볼린저(20,2):** 전일 하단 이탈, 최근 재진입
 **매수 신호:** VIX/금리 중 1개 이상 + 기술 4개 중 3개 이상 (SPY 200일선은 참고용)""")
 @st.cache_data(ttl=900,show_spinner=False)
-def cached_scan(tickers, version="sigma-v1"):
+def cached_scan(tickers, version="sigma-20day-v2"):
     return scan(list(tickers))
 if st.button("🔄 최신 데이터 다시 확인",type="primary"):
     cached_scan.clear()
@@ -105,8 +105,8 @@ else:
             for r in signals:
                 st.success(f"**{r['ticker']}** · {r['date']} · 기술 조건 {r['technical_count']}/4 · 종가 ${r['close']:.2f}")
         else: st.write("현재 조건을 충족하는 ETF가 없습니다.")
-        st.subheader("📐 주간 시그마(σ) 모니터")
-        st.caption("이번 주 기준가 대비 현재 종가의 변동성 위치를 σ로 표시합니다. SigmaRange와 비슷한 표현 방식이지만 계산법은 독립적인 추정 모델입니다.")
+        st.subheader("📐 20일 이동평균 시그마(σ) 모니터")
+        st.caption("최근 20거래일 종가 평균을 0σ로 두고 현재 종가의 상대적 위치를 표시합니다. SigmaRange와 계산법은 다릅니다.")
         if rows:
             sigma_display=[]
             for r in rows:
@@ -120,7 +120,7 @@ else:
                     "구간":status,
                     "−1σ 하단($)":round(r["sigma_lower"],2) if r.get("sigma_lower") is not None else None,
                     "+1σ 상단($)":round(r["sigma_upper"],2) if r.get("sigma_upper") is not None else None,
-                    "주간 기준가($)":round(r["sigma_anchor"],2) if r.get("sigma_anchor") is not None else None,
+                    "20일 평균가($)":round(r["sigma_anchor"],2) if r.get("sigma_anchor") is not None else None,
                     "20일 범위 위치(%)":round(r["position20_pct"],1) if r.get("position20_pct") is not None else None,
                 })
             sigma_df=pd.DataFrame(sigma_display)
@@ -167,7 +167,7 @@ else:
             with st.expander("시그마 상세 수치 표 보기"):
                 st.dataframe(sigma_df,hide_index=True,use_container_width=True)
             with st.expander("σ 계산법과 해석"):
-                st.write("기준가 = 직전 주 마지막 거래일 종가. 1σ 가격폭 = 기준가 × 최근 20거래일 로그수익률 표준편차 × √5. σ 점수 = (현재 종가 − 기준가) ÷ 1σ 가격폭.")
+                st.write("0σ = 최근 20거래일 종가의 평균(오늘 완료된 일봉 포함). 1σ = 같은 20개 종가의 모집단 표준편차(ddof=0). σ 점수 = (현재 종가 − 20일 평균) ÷ 20일 표준편차.")
                 st.warning("σ는 현재 가격의 상대적 위치를 나타내며 실제 저점·고점, 상승·하락 확률이나 향후 가격 범위를 보장하지 않습니다. 기존 매수 조건과 텔레그램 알림에는 반영되지 않습니다.")
         st.subheader("📊 전체 ETF 검사 결과")
         if rows:
