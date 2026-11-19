@@ -26,11 +26,6 @@
       "active": true
     },
     {
-      "ticker": "TQQQ",
-      "name": "ProShares UltraPro QQQ",
-      "active": true
-    },
-    {
       "ticker": "SOXL",
       "name": "Direxion Daily Semiconductor Bu",
       "active": true
